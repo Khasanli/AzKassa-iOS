@@ -127,4 +127,22 @@ final class APIService {
         let req = try makeRequest("/auth/staff/\(id)", method: "DELETE")
         _ = try await URLSession.shared.data(for: req)
     }
+
+    // MARK: - AI
+
+    func analyzeDocument(text: String) async throws -> [[String: Any]] {
+        struct Body: Encodable { let text: String }
+        struct Response: Decodable { let products: [AnyCodable] }
+
+        let req = try makeRequest("/ai/analyze", method: "POST", body: Body(text: text))
+        let (data, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse else { throw APIError.serverError("No response") }
+        guard (200...299).contains(http.statusCode) else {
+            let msg = (try? JSONDecoder().decode([String: String].self, from: data))?["error"] ?? "AI xətası"
+            throw APIError.serverError(msg)
+        }
+        guard let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let products = json["products"] as? [[String: Any]] else { return [] }
+        return products
+    }
 }

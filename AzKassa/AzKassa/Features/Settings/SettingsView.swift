@@ -53,26 +53,6 @@ struct SettingsView: View {
                     }
                     .listRowBackground(Color.white)
 
-                    // AI settings
-                    Section("AI (Qaimə analizi)") {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text("Anthropic API Açarı")
-                                .font(.system(size: 13, weight: .medium)).foregroundColor(.slate700)
-                            SecureField("sk-ant-...", text: $vm.anthropicKey)
-                                .font(.system(size: 13, design: .monospaced))
-                                .padding(10)
-                                .background(Color.slate100)
-                                .cornerRadius(8)
-                                .onChange(of: vm.anthropicKey) { val in
-                                    UserDefaults.standard.set(val, forKey: "anthropic_api_key")
-                                }
-                            Text("Qaimə idxalı üçün tələb olunur")
-                                .font(.system(size: 11)).foregroundColor(.slate400)
-                        }
-                        .padding(.vertical, 4)
-                    }
-                    .listRowBackground(Color.white)
-
                     // Staff management
                     Section("İstifadəçilər") {
                         NavigationLink {
