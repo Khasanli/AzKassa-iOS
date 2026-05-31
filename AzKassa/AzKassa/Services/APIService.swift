@@ -132,8 +132,6 @@ final class APIService {
 
     func analyzeDocument(text: String) async throws -> [[String: Any]] {
         struct Body: Encodable { let text: String }
-        struct Response: Decodable { let products: [AnyCodable] }
-
         let req = try makeRequest("/ai/analyze", method: "POST", body: Body(text: text))
         let (data, response) = try await URLSession.shared.data(for: req)
         guard let http = response as? HTTPURLResponse else { throw APIError.serverError("No response") }
