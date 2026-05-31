@@ -48,6 +48,7 @@ struct ExcelImportView: View {
     @State private var rawData: [[String: String]] = []
     @State private var headers: [String] = []
     @State private var mapping = FieldMapping()
+    @State private var isConverting = false
 
     enum Stage { case pick, map, preview, done }
 
@@ -153,6 +154,7 @@ struct ExcelImportView: View {
     // MARK: - Mapping stage (mirrors web ColumnMapping step)
 
     private var mapView: some View {
+        ZStack {
         VStack(spacing: 0) {
             HStack(spacing: 6) {
                 Image(systemName: "doc.text").foregroundColor(Color(hex: "#059669")).font(.system(size: 13))
@@ -214,6 +216,19 @@ struct ExcelImportView: View {
                 .background(Color(hex: "#FEF2F2"))
             }
         }
+
+        // Loading overlay while XLSX is uploading to server
+        if isConverting {
+            Color.black.opacity(0.3).ignoresSafeArea()
+            VStack(spacing: 14) {
+                ProgressView().scaleEffect(1.3).tint(.white)
+                Text("XLSX yüklənir...").font(.system(size: 14, weight: .semibold)).foregroundColor(.white)
+            }
+            .padding(28)
+            .background(Color.slate800.opacity(0.9))
+            .cornerRadius(16)
+        }
+        } // ZStack
     }
 
     // MARK: - Preview
@@ -285,20 +300,20 @@ struct ExcelImportView: View {
         guard let fileData = try? Data(contentsOf: url) else {
             parseError = "XLSX faylı oxunmadı"; return
         }
-        stage = .map  // show loading state via mapView spinner
+        isConverting = true
+        stage = .map
         Task {
             do {
                 let result = try await APIService.shared.convertXLSX(data: fileData, filename: url.lastPathComponent)
                 headers = result.headers
-                rawData = result.rows.map { row in
-                    row.mapValues { "\($0)" }
-                }
+                rawData = result.rows.map { row in row.mapValues { "\($0)" } }
                 mapping = suggestMapping(headers: headers)
                 parseError = nil
             } catch {
                 parseError = "XLSX emal edilmədi: \(error.localizedDescription)"
                 stage = .pick
             }
+            isConverting = false
         }
     }
 
