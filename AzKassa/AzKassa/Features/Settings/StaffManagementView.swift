@@ -6,7 +6,12 @@ struct StaffManagementView: View {
     var body: some View {
         List {
             if vm.staff.isEmpty && !vm.isLoading {
-                ContentUnavailableView("İşçi yoxdur", systemImage: "person.slash", description: Text("Yeni işçi əlavə edin"))
+                VStack(spacing: 10) {
+                    Image(systemName: "person.slash").font(.system(size: 40)).foregroundColor(.slate300)
+                    Text("İşçi yoxdur").font(.system(size: 15, weight: .semibold)).foregroundColor(.slate500)
+                    Text("Yeni işçi əlavə edin").font(.appBody).foregroundColor(.slate400)
+                }
+                .frame(maxWidth: .infinity).padding(40)
             }
             ForEach(vm.staff) { member in
                 StaffRow(member: member)
