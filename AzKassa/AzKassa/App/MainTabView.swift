@@ -1,47 +1,64 @@
 import SwiftUI
 
+private struct TabItem {
+    let tag: Int
+    let icon: String
+    let label: String
+}
+
+private let tabs: [TabItem] = [
+    TabItem(tag: 0, icon: "chart.bar.fill",           label: "Dashboard"),
+    TabItem(tag: 1, icon: "cart.fill",                 label: "Satış"),
+    TabItem(tag: 2, icon: "shippingbox.fill",          label: "Məhsullar"),
+    TabItem(tag: 3, icon: "doc.text.fill",             label: "Qəbzlər"),
+    TabItem(tag: 4, icon: "chart.line.uptrend.xyaxis", label: "Hesabat"),
+    TabItem(tag: 5, icon: "gearshape.fill",            label: "Parametr"),
+]
+
 struct MainTabView: View {
-    init() {
-        let appearance = UITabBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = .white
-
-        // Smaller icon + label for 6 tabs
-        let itemAppearance = UITabBarItemAppearance()
-        let smallFont = UIFont.systemFont(ofSize: 9, weight: .medium)
-        itemAppearance.normal.titleTextAttributes   = [.font: smallFont, .foregroundColor: UIColor.systemGray]
-        itemAppearance.selected.titleTextAttributes = [.font: smallFont, .foregroundColor: UIColor(Color.brand)]
-        itemAppearance.normal.iconColor   = .systemGray
-        itemAppearance.selected.iconColor = UIColor(Color.brand)
-        appearance.stackedLayoutAppearance   = itemAppearance
-        appearance.inlineLayoutAppearance    = itemAppearance
-        appearance.compactInlineLayoutAppearance = itemAppearance
-
-        UITabBar.appearance().standardAppearance   = appearance
-        UITabBar.appearance().scrollEdgeAppearance = appearance
-        UITabBar.appearance().tintColor = UIColor(Color.brand)
-    }
+    @State private var selected = 0
 
     var body: some View {
-        TabView {
-            DashboardView()
-                .tabItem { Label("Dashboard", systemImage: "chart.bar.fill").environment(\.imageScale, .small) }
+        VStack(spacing: 0) {
+            // Content
+            Group {
+                switch selected {
+                case 0: DashboardView()
+                case 1: POSView()
+                case 2: ProductsView()
+                case 3: InvoicesView()
+                case 4: ReportsView()
+                case 5: SettingsView()
+                default: DashboardView()
+                }
+            }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
 
-            POSView()
-                .tabItem { Label("Satış", systemImage: "cart.fill").environment(\.imageScale, .small) }
+            Divider()
 
-            ProductsView()
-                .tabItem { Label("Məhsullar", systemImage: "shippingbox.fill").environment(\.imageScale, .small) }
-
-            InvoicesView()
-                .tabItem { Label("Qəbzlər", systemImage: "doc.text.fill").environment(\.imageScale, .small) }
-
-            ReportsView()
-                .tabItem { Label("Hesabat", systemImage: "chart.line.uptrend.xyaxis").environment(\.imageScale, .small) }
-
-            SettingsView()
-                .tabItem { Label("Parametr", systemImage: "gearshape.fill").environment(\.imageScale, .small) }
+            // Custom tab bar
+            HStack(spacing: 0) {
+                ForEach(tabs, id: \.tag) { tab in
+                    Button {
+                        selected = tab.tag
+                    } label: {
+                        VStack(spacing: 3) {
+                            Image(systemName: tab.icon)
+                                .font(.system(size: 18, weight: .medium))
+                                .frame(height: 22)
+                            Text(tab.label)
+                                .font(.system(size: 9, weight: .medium))
+                        }
+                        .foregroundColor(selected == tab.tag ? Color.brand : Color(hex: "#94A3B8"))
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 8)
+                    }
+                }
+            }
+            .background(Color.white)
+            .padding(.bottom, 2)
         }
+        .ignoresSafeArea(edges: .bottom)
         .tint(Color.brand)
     }
 }
