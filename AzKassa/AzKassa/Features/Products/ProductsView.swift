@@ -7,9 +7,9 @@ struct ProductsView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 // Page header
-                HStack {
+                HStack(spacing: 8) {
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("nav_products_group › Məhsullar")
+                        Text("Anbar › Məhsullar")
                             .font(.system(size: 11))
                             .foregroundColor(.slate400)
                         Text("Məhsullar")
@@ -17,23 +17,47 @@ struct ProductsView: View {
                             .foregroundColor(.slate900)
                     }
                     Spacer()
-                    Button {
-                        vm.showAdd = true
-                    } label: {
-                        HStack(spacing: 6) {
+                    // Qaimə import button
+                    Button { vm.showQaime = true } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "doc.text.magnifyingglass")
+                            Text("Qaimə")
+                        }
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "#7C3AED"))
+                        .padding(.horizontal, 10).padding(.vertical, 7)
+                        .background(Color(hex: "#F5F3FF"))
+                        .cornerRadius(7)
+                        .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#DDD6FE"), lineWidth: 1))
+                    }
+                    // Excel import button
+                    Button { vm.showExcel = true } label: {
+                        HStack(spacing: 5) {
+                            Image(systemName: "tablecells")
+                            Text("Excel")
+                        }
+                        .font(.system(size: 12, weight: .semibold))
+                        .foregroundColor(Color(hex: "#059669"))
+                        .padding(.horizontal, 10).padding(.vertical, 7)
+                        .background(Color(hex: "#ECFDF5"))
+                        .cornerRadius(7)
+                        .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color(hex: "#A7F3D0"), lineWidth: 1))
+                    }
+                    // New product button
+                    Button { vm.showAdd = true } label: {
+                        HStack(spacing: 5) {
                             Image(systemName: "plus")
                             Text("Yeni")
                         }
                         .font(.system(size: 13, weight: .semibold))
                         .foregroundColor(.white)
-                        .padding(.horizontal, 14)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, 12).padding(.vertical, 7)
                         .background(Color.brand)
                         .cornerRadius(8)
                     }
                 }
                 .padding(.horizontal, 16)
-                .padding(.vertical, 14)
+                .padding(.vertical, 12)
                 .background(Color.white)
 
                 Divider()
@@ -88,6 +112,18 @@ struct ProductsView: View {
             .background(Color.appBg)
             .navigationBarHidden(true)
             .sheet(isPresented: $vm.showAdd) { AddProductView(vm: vm) }
+            .sheet(isPresented: $vm.showExcel) {
+                ExcelImportView { rows in
+                    vm.showExcel = false
+                    Task { await vm.importRows(rows) }
+                }
+            }
+            .sheet(isPresented: $vm.showQaime) {
+                QaimeImportView { rows in
+                    vm.showQaime = false
+                    Task { await vm.importRows(rows) }
+                }
+            }
             .task { await vm.load() }
         }
     }

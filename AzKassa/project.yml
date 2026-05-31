@@ -33,6 +33,9 @@ targets:
             "178.105.243.22":
               NSExceptionAllowsInsecureHTTPLoads: true
               NSIncludesSubdomains: false
+            "localhost":
+              NSExceptionAllowsInsecureHTTPLoads: true
+              NSIncludesSubdomains: false
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
           - UIInterfaceOrientationLandscapeLeft

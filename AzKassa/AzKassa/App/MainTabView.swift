@@ -21,8 +21,14 @@ struct MainTabView: View {
             ProductsView()
                 .tabItem { Label("Məhsullar", systemImage: "shippingbox.fill") }
 
-            OrdersView()
-                .tabItem { Label("Sifarişlər", systemImage: "list.bullet.rectangle.fill") }
+            InvoicesView()
+                .tabItem { Label("Qəbzlər", systemImage: "doc.text.fill") }
+
+            ReportsView()
+                .tabItem { Label("Hesabat", systemImage: "chart.line.uptrend.xyaxis") }
+
+            SettingsView()
+                .tabItem { Label("Parametr", systemImage: "gearshape.fill") }
         }
         .tint(Color.brand)
     }

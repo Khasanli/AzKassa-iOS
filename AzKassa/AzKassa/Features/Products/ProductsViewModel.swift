@@ -5,6 +5,8 @@ final class ProductsViewModel: ObservableObject {
     @Published var products: [Product] = []
     @Published var search = ""
     @Published var showAdd = false
+    @Published var showExcel = false
+    @Published var showQaime = false
     @Published var isLoading = false
     @Published var errorMessage: String?
 
@@ -39,6 +41,23 @@ final class ProductsViewModel: ObservableObject {
                 products[idx] = p
             }
         } catch { errorMessage = error.localizedDescription }
+    }
+
+    func importRows(_ rows: [ImportRow]) async {
+        let measuredUnits = Set(["kq", "kg", "q", "litr", "ml"])
+        for row in rows {
+            let sku = String(row.name.prefix(3)).uppercased() + "-" + String(Int.random(in: 100...999))
+            let input = ProductInput(
+                name: row.name, sku: sku,
+                barcode: row.barcode.isEmpty ? String(Int64.random(in: 1000000000000...9999999999999)) : row.barcode,
+                category: row.category, productType: nil,
+                price: row.price, costPrice: row.costPrice,
+                unit: row.unit, priceUnit: measuredUnits.contains(row.unit) ? "kg" : "piece",
+                stock: 0, minStock: 10, isCritical: false, discountPct: 0
+            )
+            _ = try? await APIService.shared.createProduct(input)
+        }
+        await load()
     }
 
     func delete(_ product: Product) async {

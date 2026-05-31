@@ -12,18 +12,25 @@
 		268894C902D32617C74ED451 /* ProductsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B7399B438B91A11F4A7EEA /* ProductsView.swift */; };
 		320843B33CC55E3C66D642F4 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F66386612D39C36FCB99522 /* DesignSystem.swift */; };
 		36CC9D1B94921658EA86B75C /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0456C88A478359F46C4DEF /* BarcodeScannerView.swift */; };
+		386C30EDAB41F304B872F58C /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C70F4DB8924D27C07E8A69AA /* SettingsView.swift */; };
 		473EDEE2CBAF800517656681 /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = 43E3D48849EEAF29F923260C /* Models.swift */; };
 		49BF524D4B297CD9DE318922 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2F57575646AC1B8A0FFC8B08 /* Assets.xcassets */; };
 		5B9CC54EFA41D5F16BB997A3 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5B5CBF4047EE3ACC5F2D52B9 /* AuthStore.swift */; };
+		69E73BD110F1B838B3CA04BF /* InvoicesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70FB0AD220FCFADF7389818E /* InvoicesView.swift */; };
 		7BB928278E4FBD8FAEC242F0 /* AddProductView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 010DB55A1CF3C9D84F9FEFEE /* AddProductView.swift */; };
+		8032F6887EA7C5F676EF345D /* ReportsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EB2A304A87217E6C80FB5D8 /* ReportsView.swift */; };
 		8E03F3D1BA5C938574613064 /* ProductsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = EB81B167AC5B8ECC2E29FFE7 /* ProductsViewModel.swift */; };
 		9497AAE533DD6DB62A4BD144 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = E3530C8B654F7D184E0085AA /* APIService.swift */; };
 		A59056FBDE7784CDAC5DFCE9 /* POSView.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD92D176426FA92942F20AB3 /* POSView.swift */; };
+		AC81999050D9CB0690F38178 /* ExcelImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8012151EC58E7F6D60D268B9 /* ExcelImportView.swift */; };
 		AFEEAC2BEF6DA7A63DF98AC7 /* AzKassaApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = C8468473BCAAC91232E0B0C6 /* AzKassaApp.swift */; };
 		B2EDE32315157475D6A21BC7 /* CartPanelView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E426DCFB710FF2AD439F91B6 /* CartPanelView.swift */; };
+		B59F6371A551E8DA56E2E0D4 /* DocumentImportView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 79A74575ACF76A48FBA5B4CA /* DocumentImportView.swift */; };
+		BDD47E0AC028C8B6667C52AF /* StaffManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DB97326D610E2E765040CCAF /* StaffManagementView.swift */; };
 		CD90749372260731232C5749 /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07862AF754A787C7512F4D92 /* DashboardViewModel.swift */; };
 		D84C342F1A54C3BB4D0D921B /* OrdersView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F059C530125BB47807BB1EAC /* OrdersView.swift */; };
 		E3DAF7173FE656B6922282D1 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EFC26FF57A6F4224785D776 /* LoginView.swift */; };
+		E5007A7D2BDDA3456B513380 /* ReportsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BE400BE41A447B4AA4D5703 /* ReportsViewModel.swift */; };
 		EBFED3C8C52F672786874605 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1C98122DED64F2C9ECDD1F9D /* MainTabView.swift */; };
 		F8F88E770DB729AE9EBD0001 /* POSViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 458BF4880CC5056F2595940F /* POSViewModel.swift */; };
 		FA9834FD9BC12111C79885B4 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2864BD4CB6A315121A3F6FE /* RootView.swift */; };
@@ -36,6 +43,7 @@
 		08B7399B438B91A11F4A7EEA /* ProductsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductsView.swift; sourceTree = "<group>"; };
 		0EFC26FF57A6F4224785D776 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		1C98122DED64F2C9ECDD1F9D /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		1EB2A304A87217E6C80FB5D8 /* ReportsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsView.swift; sourceTree = "<group>"; };
 		2C600AF9F30D4E1CC74C33DF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		2F57575646AC1B8A0FFC8B08 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		2F66386612D39C36FCB99522 /* DesignSystem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DesignSystem.swift; sourceTree = "<group>"; };
@@ -44,11 +52,17 @@
 		458BF4880CC5056F2595940F /* POSViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POSViewModel.swift; sourceTree = "<group>"; };
 		5B5CBF4047EE3ACC5F2D52B9 /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
 		6F0456C88A478359F46C4DEF /* BarcodeScannerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BarcodeScannerView.swift; sourceTree = "<group>"; };
+		70FB0AD220FCFADF7389818E /* InvoicesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InvoicesView.swift; sourceTree = "<group>"; };
+		79A74575ACF76A48FBA5B4CA /* DocumentImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DocumentImportView.swift; sourceTree = "<group>"; };
+		8012151EC58E7F6D60D268B9 /* ExcelImportView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExcelImportView.swift; sourceTree = "<group>"; };
 		83BEB00C2F3834AB3EB770CE /* AzKassa.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = AzKassa.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		8BE400BE41A447B4AA4D5703 /* ReportsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReportsViewModel.swift; sourceTree = "<group>"; };
 		B1B765329CB004C49228F987 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		C2F67CD401091B4BD9F69A57 /* ProductDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductDetailView.swift; sourceTree = "<group>"; };
+		C70F4DB8924D27C07E8A69AA /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		C8468473BCAAC91232E0B0C6 /* AzKassaApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AzKassaApp.swift; sourceTree = "<group>"; };
 		CD92D176426FA92942F20AB3 /* POSView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = POSView.swift; sourceTree = "<group>"; };
+		DB97326D610E2E765040CCAF /* StaffManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StaffManagementView.swift; sourceTree = "<group>"; };
 		E2864BD4CB6A315121A3F6FE /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
 		E3530C8B654F7D184E0085AA /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
 		E426DCFB710FF2AD439F91B6 /* CartPanelView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CartPanelView.swift; sourceTree = "<group>"; };
@@ -73,12 +87,38 @@
 			path = Orders;
 			sourceTree = "<group>";
 		};
+		2CA1CD3F77F924A248C17554 /* Settings */ = {
+			isa = PBXGroup;
+			children = (
+				C70F4DB8924D27C07E8A69AA /* SettingsView.swift */,
+				DB97326D610E2E765040CCAF /* StaffManagementView.swift */,
+			);
+			path = Settings;
+			sourceTree = "<group>";
+		};
 		313B494A304AAD7FC1C55C87 /* Components */ = {
 			isa = PBXGroup;
 			children = (
 				2F66386612D39C36FCB99522 /* DesignSystem.swift */,
 			);
 			path = Components;
+			sourceTree = "<group>";
+		};
+		634D747DE2FF5A334D4A535C /* Reports */ = {
+			isa = PBXGroup;
+			children = (
+				1EB2A304A87217E6C80FB5D8 /* ReportsView.swift */,
+				8BE400BE41A447B4AA4D5703 /* ReportsViewModel.swift */,
+			);
+			path = Reports;
+			sourceTree = "<group>";
+		};
+		7D9DE82A3E07465FB89FBF29 /* Invoices */ = {
+			isa = PBXGroup;
+			children = (
+				70FB0AD220FCFADF7389818E /* InvoicesView.swift */,
+			);
+			path = Invoices;
 			sourceTree = "<group>";
 		};
 		9A0DA4BF55C5210C9D7C1BC5 /* App */ = {
@@ -105,9 +145,13 @@
 			children = (
 				08B6A55BB55C3E27B4FE5110 /* Auth */,
 				ADCBDD84C60928D1DD019C53 /* Dashboard */,
+				B7514733CE97E263C5291463 /* Import */,
+				7D9DE82A3E07465FB89FBF29 /* Invoices */,
 				1F6969A43FF3BEBE8BC3F801 /* Orders */,
 				B366487E0FF7FAB800293AF3 /* POS */,
 				EAD4554728DD2FE4A9BFAB0E /* Products */,
+				634D747DE2FF5A334D4A535C /* Reports */,
+				2CA1CD3F77F924A248C17554 /* Settings */,
 			);
 			path = Features;
 			sourceTree = "<group>";
@@ -130,6 +174,15 @@
 				458BF4880CC5056F2595940F /* POSViewModel.swift */,
 			);
 			path = POS;
+			sourceTree = "<group>";
+		};
+		B7514733CE97E263C5291463 /* Import */ = {
+			isa = PBXGroup;
+			children = (
+				79A74575ACF76A48FBA5B4CA /* DocumentImportView.swift */,
+				8012151EC58E7F6D60D268B9 /* ExcelImportView.swift */,
+			);
+			path = Import;
 			sourceTree = "<group>";
 		};
 		C996601E6E1805EB3456F0E8 /* Models */ = {
@@ -259,6 +312,9 @@
 				0D04F3575D643D9B81C6771B /* DashboardView.swift in Sources */,
 				CD90749372260731232C5749 /* DashboardViewModel.swift in Sources */,
 				320843B33CC55E3C66D642F4 /* DesignSystem.swift in Sources */,
+				B59F6371A551E8DA56E2E0D4 /* DocumentImportView.swift in Sources */,
+				AC81999050D9CB0690F38178 /* ExcelImportView.swift in Sources */,
+				69E73BD110F1B838B3CA04BF /* InvoicesView.swift in Sources */,
 				E3DAF7173FE656B6922282D1 /* LoginView.swift in Sources */,
 				EBFED3C8C52F672786874605 /* MainTabView.swift in Sources */,
 				473EDEE2CBAF800517656681 /* Models.swift in Sources */,
@@ -268,7 +324,11 @@
 				FF0227F821E4C57B3A1A3C4F /* ProductDetailView.swift in Sources */,
 				268894C902D32617C74ED451 /* ProductsView.swift in Sources */,
 				8E03F3D1BA5C938574613064 /* ProductsViewModel.swift in Sources */,
+				8032F6887EA7C5F676EF345D /* ReportsView.swift in Sources */,
+				E5007A7D2BDDA3456B513380 /* ReportsViewModel.swift in Sources */,
 				FA9834FD9BC12111C79885B4 /* RootView.swift in Sources */,
+				386C30EDAB41F304B872F58C /* SettingsView.swift in Sources */,
+				BDD47E0AC028C8B6667C52AF /* StaffManagementView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

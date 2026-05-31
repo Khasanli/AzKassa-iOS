@@ -111,4 +111,20 @@ final class APIService {
     func createOrder(_ order: CreateOrderRequest) async throws -> Order {
         try await perform(makeRequest("/orders", method: "POST", body: order))
     }
+
+    // MARK: - Staff
+
+    func fetchStaff() async throws -> [StaffMember] {
+        try await perform(makeRequest("/auth/staff"))
+    }
+
+    func createStaff(username: String, fullName: String, password: String, permissions: [String]) async throws -> StaffMember {
+        struct Body: Encodable { let username: String; let password: String; let fullName: String; let permissions: [String] }
+        return try await perform(makeRequest("/auth/staff", method: "POST", body: Body(username: username, password: password, fullName: fullName, permissions: permissions)))
+    }
+
+    func deleteStaff(id: String) async throws {
+        let req = try makeRequest("/auth/staff/\(id)", method: "DELETE")
+        _ = try await URLSession.shared.data(for: req)
+    }
 }
