@@ -1,0 +1,55 @@
+name: AzKassa
+
+options:
+  bundleIdPrefix: com.azkassa
+  deploymentTarget:
+    iOS: "16.0"
+  defaultConfig: Debug
+
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    TARGETED_DEVICE_FAMILY: "1,2"
+    IPHONEOS_DEPLOYMENT_TARGET: "16.0"
+
+targets:
+  AzKassa:
+    type: application
+    platform: iOS
+    deploymentTarget: "16.0"
+    sources:
+      - path: AzKassa
+        excludes:
+          - "**/*.md"
+    resources:
+      - AzKassa/Assets.xcassets
+      - AzKassa/scanner-beep.mp3
+    info:
+      path: AzKassa/Info.plist
+      properties:
+        NSCameraUsageDescription: "Barkod skan etmək üçün kamera lazımdır"
+        NSAppTransportSecurity:
+          NSExceptionDomains:
+            "178.105.243.22":
+              NSExceptionAllowsInsecureHTTPLoads: true
+              NSIncludesSubdomains: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        "UISupportedInterfaceOrientations~ipad":
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UILaunchStoryboardName: LaunchScreen
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.azkassa.app
+        MARKETING_VERSION: "1.0"
+        CURRENT_PROJECT_VERSION: "1"
+        ENABLE_PREVIEWS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
