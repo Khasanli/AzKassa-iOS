@@ -1,64 +1,68 @@
 import SwiftUI
 
-private struct TabItem {
-    let tag: Int
-    let icon: String
-    let label: String
-}
-
-private let tabs: [TabItem] = [
-    TabItem(tag: 0, icon: "chart.bar.fill",           label: "Dashboard"),
-    TabItem(tag: 1, icon: "cart.fill",                 label: "Satış"),
-    TabItem(tag: 2, icon: "shippingbox.fill",          label: "Məhsullar"),
-    TabItem(tag: 3, icon: "doc.text.fill",             label: "Qəbzlər"),
-    TabItem(tag: 4, icon: "chart.line.uptrend.xyaxis", label: "Hesabat"),
-    TabItem(tag: 5, icon: "gearshape.fill",            label: "Parametr"),
-]
-
 struct MainTabView: View {
     @State private var selected = 0
 
+    // Icon names matching tab order
+    private let iconNames = [
+        "chart.bar.fill",
+        "cart.fill",
+        "shippingbox.fill",
+        "doc.text.fill",
+        "chart.line.uptrend.xyaxis",
+        "gearshape.fill",
+    ]
+
     var body: some View {
-        VStack(spacing: 0) {
-            // Content
-            Group {
-                switch selected {
-                case 0: DashboardView()
-                case 1: POSView()
-                case 2: ProductsView()
-                case 3: InvoicesView()
-                case 4: ReportsView()
-                case 5: SettingsView()
-                default: DashboardView()
-                }
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
+        TabView(selection: $selected) {
+            DashboardView()
+                .tabItem { Label("Dashboard", systemImage: "chart.bar.fill") }
+                .tag(0)
 
-            Divider()
+            POSView()
+                .tabItem { Label("Satış", systemImage: "cart.fill") }
+                .tag(1)
 
-            // Custom tab bar
-            HStack(spacing: 0) {
-                ForEach(tabs, id: \.tag) { tab in
-                    Button {
-                        selected = tab.tag
-                    } label: {
-                        VStack(spacing: 3) {
-                            Image(systemName: tab.icon)
-                                .font(.system(size: 18, weight: .medium))
-                                .frame(height: 22)
-                            Text(tab.label)
-                                .font(.system(size: 9, weight: .medium))
-                        }
-                        .foregroundColor(selected == tab.tag ? Color.brand : Color(hex: "#94A3B8"))
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
-                    }
-                }
-            }
-            .background(Color.white)
-            .padding(.bottom, 2)
+            ProductsView()
+                .tabItem { Label("Məhsullar", systemImage: "shippingbox.fill") }
+                .tag(2)
+
+            InvoicesView()
+                .tabItem { Label("Qəbzlər", systemImage: "doc.text.fill") }
+                .tag(3)
+
+            ReportsView()
+                .tabItem { Label("Hesabat", systemImage: "chart.line.uptrend.xyaxis") }
+                .tag(4)
+
+            SettingsView()
+                .tabItem { Label("Parametr", systemImage: "gearshape.fill") }
+                .tag(5)
         }
-        .ignoresSafeArea(edges: .bottom)
         .tint(Color.brand)
+        .onAppear { resizeTabBarIcons() }
+    }
+
+    // Replace system tab bar images with smaller 18pt versions
+    private func resizeTabBarIcons() {
+        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let root = scene.windows.first?.rootViewController else { return }
+
+        func findTabBar(_ vc: UIViewController) -> UITabBar? {
+            if let tb = (vc as? UITabBarController)?.tabBar { return tb }
+            for child in vc.children { if let found = findTabBar(child) { return found } }
+            return nil
+        }
+
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+            guard let tabBar = findTabBar(root) else { return }
+            let config = UIImage.SymbolConfiguration(pointSize: 17, weight: .medium)
+            for (index, item) in (tabBar.items ?? []).enumerated() {
+                guard index < iconNames.count else { break }
+                let img = UIImage(systemName: iconNames[index], withConfiguration: config)
+                item.image         = img
+                item.selectedImage = img
+            }
+        }
     }
 }
