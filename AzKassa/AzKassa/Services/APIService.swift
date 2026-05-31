@@ -5,13 +5,15 @@ enum APIError: LocalizedError {
     case notFound
     case serverError(String)
     case decodingError(Error)
+    case offline
 
     var errorDescription: String? {
         switch self {
-        case .unauthorized: return "Giriş tələb olunur"
-        case .notFound: return "Tapılmadı"
-        case .serverError(let msg): return msg
+        case .unauthorized:    return "Giriş tələb olunur"
+        case .notFound:        return "Tapılmadı"
+        case .serverError(let m): return m
         case .decodingError(let e): return "Məlumat xətası: \(e.localizedDescription)"
+        case .offline:         return "Server əlçatan deyil"
         }
     }
 }
@@ -20,27 +22,37 @@ final class APIService {
     static let shared = APIService()
     private init() {}
 
-    // Change to your server URL
-    private let baseURL = "http://178.105.243.22/api"
+    // Simulator hits Mac localhost; device hits the production server.
+    private var baseURL: String {
+        #if targetEnvironment(simulator)
+        return "http://localhost:3001/api"
+        #else
+        return "http://178.105.243.22/api"
+        #endif
+    }
 
-    private var token: String? {
+    var token: String? {
         UserDefaults.standard.string(forKey: "mkassa_token")
     }
 
     private func makeRequest(_ path: String, method: String = "GET", body: Encodable? = nil) throws -> URLRequest {
-        guard let url = URL(string: baseURL + path) else {
-            throw APIError.serverError("Invalid URL")
-        }
+        guard let url = URL(string: baseURL + path) else { throw APIError.serverError("Invalid URL") }
         var req = URLRequest(url: url)
         req.httpMethod = method
         req.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        req.timeoutInterval = 10
         if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
         if let body { req.httpBody = try JSONEncoder().encode(body) }
         return req
     }
 
     private func perform<T: Decodable>(_ request: URLRequest) async throws -> T {
-        let (data, response) = try await URLSession.shared.data(for: request)
+        let (data, response): (Data, URLResponse)
+        do {
+            (data, response) = try await URLSession.shared.data(for: request)
+        } catch {
+            throw APIError.offline
+        }
         guard let http = response as? HTTPURLResponse else { throw APIError.serverError("No response") }
         switch http.statusCode {
         case 200...299:
@@ -63,33 +75,23 @@ final class APIService {
         return try await perform(req)
     }
 
-    func staffLogin(username: String, password: String, businessId: String) async throws -> LoginResponse {
-        struct Body: Encodable { let username: String; let password: String; let businessId: String }
-        var req = try makeRequest("/auth/staff/login", method: "POST", body: Body(username: username, password: password, businessId: businessId))
-        req.setValue(nil, forHTTPHeaderField: "Authorization")
-        return try await perform(req)
-    }
-
     // MARK: - Products
 
     func fetchProducts(search: String? = nil, category: String? = nil) async throws -> [Product] {
         var path = "/products"
         var params: [String] = []
-        if let search { params.append("search=\(search.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") }
-        if let category { params.append("category=\(category.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") }
+        if let s = search { params.append("search=\(s.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") }
+        if let c = category { params.append("category=\(c.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) ?? "")") }
         if !params.isEmpty { path += "?" + params.joined(separator: "&") }
-        let req = try makeRequest(path)
-        return try await perform(req)
+        return try await perform(makeRequest(path))
     }
 
     func createProduct(_ input: ProductInput) async throws -> Product {
-        let req = try makeRequest("/products", method: "POST", body: input)
-        return try await perform(req)
+        try await perform(makeRequest("/products", method: "POST", body: input))
     }
 
     func updateProduct(id: String, input: ProductInput) async throws -> Product {
-        let req = try makeRequest("/products/\(id)", method: "PATCH", body: input)
-        return try await perform(req)
+        try await perform(makeRequest("/products/\(id)", method: "PATCH", body: input))
     }
 
     func deleteProduct(id: String) async throws {
@@ -103,12 +105,10 @@ final class APIService {
     // MARK: - Orders
 
     func fetchOrders(limit: Int = 50) async throws -> [Order] {
-        let req = try makeRequest("/orders?limit=\(limit)")
-        return try await perform(req)
+        try await perform(makeRequest("/orders?limit=\(limit)"))
     }
 
     func createOrder(_ order: CreateOrderRequest) async throws -> Order {
-        let req = try makeRequest("/orders", method: "POST", body: order)
-        return try await perform(req)
+        try await perform(makeRequest("/orders", method: "POST", body: order))
     }
 }

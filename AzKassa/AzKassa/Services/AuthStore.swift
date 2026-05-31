@@ -1,5 +1,4 @@
 import Foundation
-import Combine
 
 @MainActor
 final class AuthStore: ObservableObject {
@@ -9,7 +8,7 @@ final class AuthStore: ObservableObject {
     @Published var errorMessage: String?
 
     private let tokenKey = "mkassa_token"
-    private let userKey = "mkassa_auth_user"
+    private let userKey  = "mkassa_auth_user"
 
     init() {
         if let token = UserDefaults.standard.string(forKey: tokenKey), !token.isEmpty {
@@ -23,6 +22,22 @@ final class AuthStore: ObservableObject {
     func login(email: String, password: String) async {
         isLoading = true
         errorMessage = nil
+
+        // Offline demo mode: allow login without a server
+        if email == "demo@azkassa.az" && password == "demo1234" {
+            let demoUser = AuthUser(
+                id: "demo-local",
+                email: email,
+                fullName: "Demo İstifadəçi",
+                companyName: "Demo Mağaza",
+                profile: "retail",
+                currency: "AZN"
+            )
+            save(token: "demo-offline-token", user: demoUser)
+            isLoading = false
+            return
+        }
+
         do {
             let response = try await APIService.shared.login(email: email, password: password)
             save(token: response.token, user: response.user)
