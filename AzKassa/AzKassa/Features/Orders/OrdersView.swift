@@ -5,13 +5,37 @@ struct OrdersView: View {
 
     var body: some View {
         NavigationStack {
-            List(vm.orders) { order in
-                NavigationLink(destination: OrderDetailView(order: order)) {
-                    OrderRow(order: order)
+            VStack(spacing: 0) {
+                // Header
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Satış › Sifarişlər")
+                            .font(.system(size: 11))
+                            .foregroundColor(.slate400)
+                        Text("Sifarişlər")
+                            .font(.appTitle)
+                            .foregroundColor(.slate900)
+                    }
+                    Spacer()
                 }
+                .padding(.horizontal, 16).padding(.vertical, 14)
+                .background(Color.white)
+
+                Divider()
+
+                List(vm.orders) { order in
+                    NavigationLink(destination: OrderDetailView(order: order)) {
+                        OrderRow(order: order)
+                    }
+                    .listRowBackground(Color.white)
+                    .listRowInsets(EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 16))
+                }
+                .listStyle(.plain)
+                .background(Color.appBg)
+                .refreshable { await vm.load() }
             }
-            .navigationTitle("Sifarişlər")
-            .refreshable { await vm.load() }
+            .background(Color.appBg)
+            .navigationBarHidden(true)
             .task { await vm.load() }
         }
     }
@@ -21,19 +45,37 @@ struct OrderRow: View {
     let order: Order
 
     var body: some View {
-        HStack {
+        HStack(spacing: 12) {
+            // CHK badge
+            Text(order.number)
+                .font(.system(size: 11, weight: .semibold, design: .monospaced))
+                .foregroundColor(.brand)
+                .padding(.horizontal, 8).padding(.vertical, 4)
+                .background(Color.brandLight)
+                .cornerRadius(6)
+
             VStack(alignment: .leading, spacing: 2) {
-                Text(order.number).font(.subheadline.bold())
-                Text("\(order.items.count) məhsul · \(order.payMethod == "cash" ? "Nağd" : "Kart")")
-                    .font(.caption).foregroundColor(.secondary)
-                Text(String(order.createdAt.prefix(16)).replacingOccurrences(of: "T", with: " "))
-                    .font(.caption2).foregroundColor(.secondary)
+                Text("\(order.items.count) məhsul")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.slate700)
+                HStack(spacing: 4) {
+                    Image(systemName: order.payMethod == "cash" ? "banknote" : "creditcard")
+                        .font(.system(size: 9))
+                    Text(order.payMethod == "cash" ? "Nağd" : "Kart")
+                    Text("·")
+                    Text(String(order.createdAt.prefix(10)))
+                }
+                .font(.system(size: 11))
+                .foregroundColor(.slate400)
             }
+
             Spacer()
+
             Text(String(format: "%.2f ₼", order.total))
-                .font(.subheadline.bold()).foregroundColor(Color("BrandColor"))
+                .font(.system(size: 15, weight: .bold))
+                .foregroundColor(.slate900)
         }
-        .padding(.vertical, 4)
+        .padding(.vertical, 10)
     }
 }
 
@@ -42,32 +84,58 @@ struct OrderDetailView: View {
 
     var body: some View {
         List {
-            Section("Ümumi") {
-                LabeledContent("Nömrə", value: order.number)
-                LabeledContent("Məbləğ", value: String(format: "%.2f ₼", order.total))
-                LabeledContent("Ödəniş", value: order.payMethod == "cash" ? "Nağd" : "Kart")
-                LabeledContent("Tarix", value: String(order.createdAt.prefix(16)).replacingOccurrences(of: "T", with: " "))
-            }
-            Section("Məhsullar (\(order.items.count))") {
+            Section {
+                LabeledRow(label: "Nömrə", value: order.number)
+                LabeledRow(label: "Ödəniş", value: order.payMethod == "cash" ? "💵 Nağd" : "💳 Kart")
+                LabeledRow(label: "Tarix", value: String(order.createdAt.prefix(16)).replacingOccurrences(of: "T", with: " "))
+                HStack {
+                    Text("Cəmi").font(.appBody).foregroundColor(.slate700)
+                    Spacer()
+                    Text(String(format: "%.2f ₼", order.total))
+                        .font(.system(size: 15, weight: .bold)).foregroundColor(.brand)
+                }
+            } header: { Text("Ümumi məlumat").font(.system(size: 11, weight: .semibold)).foregroundColor(.slate500) }
+              .listRowBackground(Color.white)
+
+            Section {
                 ForEach(order.items) { item in
                     HStack {
-                        Text(item.name).font(.subheadline)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(item.name).font(.system(size: 13, weight: .semibold)).foregroundColor(.slate900)
+                            Text("×\(Int(item.qty)) \(item.unit)").font(.system(size: 11)).foregroundColor(.slate400)
+                        }
                         Spacer()
-                        Text("×\(Int(item.qty))").foregroundColor(.secondary).font(.caption)
-                        Text(String(format: "%.2f ₼", item.price)).font(.subheadline.bold())
+                        Text(String(format: "%.2f ₼", item.price))
+                            .font(.system(size: 13, weight: .bold)).foregroundColor(.slate900)
                     }
+                    .padding(.vertical, 2)
                 }
-            }
+            } header: { Text("Məhsullar (\(order.items.count))").font(.system(size: 11, weight: .semibold)).foregroundColor(.slate500) }
+              .listRowBackground(Color.white)
         }
+        .listStyle(.insetGrouped)
+        .background(Color.appBg)
         .navigationTitle(order.number)
         .navigationBarTitleDisplayMode(.inline)
+        .akNavigationStyle()
+    }
+}
+
+struct LabeledRow: View {
+    let label: String
+    let value: String
+    var body: some View {
+        HStack {
+            Text(label).font(.appBody).foregroundColor(.slate500)
+            Spacer()
+            Text(value).font(.system(size: 13, weight: .medium)).foregroundColor(.slate800)
+        }
     }
 }
 
 @MainActor
 final class OrdersViewModel: ObservableObject {
     @Published var orders: [Order] = []
-
     func load() async {
         orders = (try? await APIService.shared.fetchOrders()) ?? []
     }

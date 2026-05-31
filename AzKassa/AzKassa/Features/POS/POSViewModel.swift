@@ -50,6 +50,7 @@ final class POSViewModel: ObservableObject {
     }
 
     var total: Double { (rawTotal - discountAmount).rounded(to: 2) }
+    var vatAmount: Double { (total * 18 / 118).rounded(to: 2) }
 
     func isInCart(_ product: Product) -> Bool {
         cart.contains { $0.productId == product.id }

@@ -1,5 +1,4 @@
 import SwiftUI
-import AVFoundation
 
 struct POSView: View {
     @StateObject private var vm = POSViewModel()
@@ -7,45 +6,21 @@ struct POSView: View {
     var body: some View {
         NavigationStack {
             HStack(spacing: 0) {
-                // Left: product browser
                 productBrowser
                     .frame(maxWidth: .infinity)
 
-                Divider()
-
-                // Right: cart (iPad split, iPhone sheet)
                 if UIDevice.current.userInterfaceIdiom == .pad {
-                    cartPanel
+                    Rectangle()
+                        .fill(Color.slate200)
+                        .frame(width: 1)
+                    CartPanelView(vm: vm)
                         .frame(width: 320)
+                        .background(Color.white)
                 }
             }
-            .navigationTitle("Satış Nöqtəsi")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                if UIDevice.current.userInterfaceIdiom == .phone {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button {
-                            vm.showCart = true
-                        } label: {
-                            ZStack(alignment: .topTrailing) {
-                                Image(systemName: "cart.fill")
-                                if !vm.cart.isEmpty {
-                                    Text("\(vm.cart.count)")
-                                        .font(.caption2.bold())
-                                        .foregroundColor(.white)
-                                        .padding(4)
-                                        .background(Color("BrandColor"))
-                                        .clipShape(Circle())
-                                        .offset(x: 8, y: -8)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            .sheet(isPresented: $vm.showCart) {
-                CartSheet(vm: vm)
-            }
+            .background(Color.appBg)
+            .navigationBarHidden(true)
+            .sheet(isPresented: $vm.showCart) { CartSheet(vm: vm) }
             .sheet(isPresented: $vm.showScanner) {
                 BarcodeScannerView { code in
                     vm.showScanner = false
@@ -53,9 +28,9 @@ struct POSView: View {
                 }
             }
             .alert("Ödəniş tamamlandı", isPresented: $vm.showPaidAlert) {
-                Button("Yeni satış") { vm.resetCart() }
+                Button("Yeni satış", role: .cancel) { vm.resetCart() }
             } message: {
-                Text(vm.paidTotal.map { "Məbləğ: \(String(format: "%.2f", $0)) ₼" } ?? "")
+                Text(vm.paidTotal.map { String(format: "Məbləğ: %.2f ₼", $0) } ?? "")
             }
             .task { await vm.loadProducts() }
         }
@@ -63,67 +38,127 @@ struct POSView: View {
 
     private var productBrowser: some View {
         VStack(spacing: 0) {
-            // Search bar
+            // Page header
             HStack {
-                Image(systemName: "magnifyingglass")
-                    .foregroundColor(.secondary)
-                TextField("Məhsul axtar...", text: $vm.search)
-                    .autocapitalization(.none)
-                if !vm.search.isEmpty {
-                    Button { vm.search = "" } label: {
-                        Image(systemName: "xmark.circle.fill").foregroundColor(.secondary)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Satış › POS")
+                        .font(.system(size: 11))
+                        .foregroundColor(.slate400)
+                    Text("Satış Nöqtəsi")
+                        .font(.appTitle)
+                        .foregroundColor(.slate900)
+                }
+                Spacer()
+                if UIDevice.current.userInterfaceIdiom == .phone {
+                    Button { vm.showCart = true } label: {
+                        ZStack(alignment: .topTrailing) {
+                            Image(systemName: "cart.fill")
+                                .font(.system(size: 18))
+                                .foregroundColor(.brand)
+                            if !vm.cart.isEmpty {
+                                Text("\(vm.cart.count)")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundColor(.white)
+                                    .padding(3)
+                                    .background(Color.brand)
+                                    .clipShape(Circle())
+                                    .offset(x: 8, y: -8)
+                            }
+                        }
                     }
                 }
-                Button {
-                    vm.showScanner = true
-                } label: {
-                    Image(systemName: "barcode.viewfinder")
-                        .foregroundColor(Color("BrandColor"))
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 14)
+            .background(Color.white)
+
+            Divider()
+
+            // Search + Scanner row
+            HStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "magnifyingglass").foregroundColor(.slate400).font(.system(size: 14))
+                    TextField("Məhsul axtar...", text: $vm.search)
+                        .font(.appBody)
+                        .autocapitalization(.none)
+                    if !vm.search.isEmpty {
+                        Button { vm.search = "" } label: {
+                            Image(systemName: "xmark.circle.fill").foregroundColor(.slate300)
+                        }
+                    }
+                }
+                .padding(.horizontal, 12).padding(.vertical, 9)
+                .background(Color.white)
+                .cornerRadius(8)
+                .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.slate200, lineWidth: 1))
+
+                Button { vm.showScanner = true } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "barcode.viewfinder")
+                        Text("Kamera").font(.system(size: 13, weight: .medium))
+                    }
+                    .padding(.horizontal, 12).padding(.vertical, 9)
+                    .background(Color.white)
+                    .foregroundColor(.slate600)
+                    .cornerRadius(8)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(Color.slate200, lineWidth: 1))
                 }
             }
-            .padding(10)
-            .background(Color(.systemGray6))
-            .cornerRadius(10)
-            .padding()
+            .padding(12)
+            .background(Color.appBg)
 
-            // Category filter
+            // Category chips
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 8) {
-                    CategoryChip(label: "Hamısı", isSelected: vm.selectedCategory == nil) {
+                HStack(spacing: 6) {
+                    POSCategoryChip(label: "Hamısı", isSelected: vm.selectedCategory == nil) {
                         vm.selectedCategory = nil
                     }
                     ForEach(vm.categories, id: \.self) { cat in
-                        CategoryChip(label: cat, isSelected: vm.selectedCategory == cat) {
+                        POSCategoryChip(label: cat, isSelected: vm.selectedCategory == cat) {
                             vm.selectedCategory = cat
                         }
                     }
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 8)
             }
-            .padding(.bottom, 8)
+
+            // Scan message
+            if let msg = vm.scanMessage {
+                HStack(spacing: 8) {
+                    Image(systemName: msg.hasPrefix("✓") ? "checkmark.circle.fill" : "xmark.circle.fill")
+                        .foregroundColor(msg.hasPrefix("✓") ? Color(hex: "#10B981") : Color(hex: "#EF4444"))
+                    Text(msg)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(msg.hasPrefix("✓") ? Color(hex: "#065F46") : Color(hex: "#7F1D1D"))
+                    Spacer()
+                }
+                .padding(.horizontal, 12).padding(.vertical, 8)
+                .background(msg.hasPrefix("✓") ? Color(hex: "#ECFDF5") : Color(hex: "#FEF2F2"))
+            }
 
             // Product grid
             ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
+                LazyVGrid(
+                    columns: [GridItem(.adaptive(minimum: 140, maximum: 180), spacing: 10)],
+                    spacing: 10
+                ) {
                     ForEach(vm.filteredProducts) { product in
-                        ProductCard(product: product, inCart: vm.isInCart(product)) {
-                            vm.addToCart(product)
-                        }
+                        POSProductCard(
+                            product: product,
+                            inCart: vm.isInCart(product)
+                        ) { vm.addToCart(product) }
                     }
                 }
-                .padding()
+                .padding(12)
             }
         }
-    }
-
-    private var cartPanel: some View {
-        CartPanelView(vm: vm)
     }
 }
 
 // MARK: - Category Chip
 
-struct CategoryChip: View {
+struct POSCategoryChip: View {
     let label: String
     let isSelected: Bool
     let action: () -> Void
@@ -131,72 +166,82 @@ struct CategoryChip: View {
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(.caption.weight(.semibold))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? Color("BrandColor") : Color(.systemGray6))
-                .foregroundColor(isSelected ? .white : .primary)
+                .font(.system(size: 12, weight: .semibold))
+                .padding(.horizontal, 12).padding(.vertical, 6)
+                .background(isSelected ? Color.brand : Color.white)
+                .foregroundColor(isSelected ? .white : .slate600)
                 .cornerRadius(20)
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(isSelected ? Color.brand : Color.slate200, lineWidth: 1))
         }
     }
 }
 
 // MARK: - Product Card
 
-struct ProductCard: View {
+struct POSProductCard: View {
     let product: Product
     let inCart: Bool
     let onAdd: () -> Void
 
     var body: some View {
         Button(action: onAdd) {
-            VStack(alignment: .leading, spacing: 6) {
+            VStack(alignment: .leading, spacing: 8) {
                 ZStack(alignment: .topTrailing) {
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color(.systemGray6))
-                        .frame(height: 60)
-                        .overlay(Image(systemName: "shippingbox").foregroundColor(.secondary))
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(inCart ? Color.brandLight : Color.slate100)
+                        .frame(height: 56)
+                        .overlay(
+                            Image(systemName: "shippingbox")
+                                .font(.system(size: 20))
+                                .foregroundColor(inCart ? Color.brand : .slate300)
+                        )
                     if inCart {
-                        Image(systemName: "checkmark.circle.fill")
-                            .foregroundColor(Color("BrandColor"))
-                            .padding(4)
+                        Circle()
+                            .fill(Color.brand)
+                            .frame(width: 18, height: 18)
+                            .overlay(Image(systemName: "plus").font(.system(size: 9, weight: .bold)).foregroundColor(.white))
+                            .offset(x: 4, y: -4)
                     }
                 }
-                Text(product.name)
-                    .font(.caption.weight(.semibold))
-                    .lineLimit(2)
-                    .foregroundColor(.primary)
 
-                HStack {
-                    if product.discountPct > 0 {
-                        VStack(alignment: .leading, spacing: 0) {
-                            Text(String(format: "%.2f ₼", product.effectivePrice))
-                                .font(.caption.bold())
-                                .foregroundColor(Color("BrandColor"))
+                Text(product.name)
+                    .font(.system(size: 12, weight: .semibold))
+                    .foregroundColor(.slate900)
+                    .lineLimit(2)
+                    .multilineTextAlignment(.leading)
+
+                if !product.sku.isEmpty {
+                    Text(product.sku)
+                        .font(.system(size: 10, design: .monospaced))
+                        .foregroundColor(.slate400)
+                }
+
+                HStack(alignment: .bottom) {
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(String(format: "%.2f ₼", product.effectivePrice))
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundColor(.brand)
+                        if product.discountPct > 0 {
                             Text(String(format: "%.2f ₼", product.price))
-                                .font(.caption2)
+                                .font(.system(size: 10))
                                 .strikethrough()
-                                .foregroundColor(.secondary)
+                                .foregroundColor(.slate400)
                         }
-                    } else {
-                        Text(String(format: "%.2f ₼", product.price))
-                            .font(.caption.bold())
-                            .foregroundColor(Color("BrandColor"))
                     }
                     Spacer()
                     Text("\(Int(product.stock))")
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                        .font(.system(size: 10))
+                        .foregroundColor(product.stock <= 0 ? Color(hex: "#EF4444") : .slate400)
                 }
             }
             .padding(10)
-            .background(inCart ? Color("BrandColor").opacity(0.08) : Color(.systemBackground))
-            .overlay(
+            .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .stroke(inCart ? Color("BrandColor") : Color(.systemGray5), lineWidth: 1)
+                    .fill(Color.white)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(inCart ? Color.brand : Color.slate200, lineWidth: inCart ? 1.5 : 1))
             )
-            .cornerRadius(12)
         }
         .disabled(product.stock <= 0)
+        .opacity(product.stock <= 0 ? 0.5 : 1)
     }
 }
