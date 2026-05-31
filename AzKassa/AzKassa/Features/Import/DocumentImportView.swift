@@ -14,6 +14,7 @@ struct QaimeImportView: View {
     @State private var errorMsg: String?
     @State private var showPicker = false
     @State private var fileName = ""
+    @State private var apiKey: String = UserDefaults.standard.string(forKey: "anthropic_api_key") ?? ""
 
     enum Stage { case pick, analyzing, preview, done }
 
@@ -66,6 +67,29 @@ struct QaimeImportView: View {
                     .multilineTextAlignment(.center)
             }
 
+            // API key inline input
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(spacing: 6) {
+                    Image(systemName: "key.fill").font(.system(size: 11)).foregroundColor(Color(hex: "#8B5CF6"))
+                    Text("Anthropic API Açarı").font(.system(size: 13, weight: .medium)).foregroundColor(.slate700)
+                }
+                SecureField("sk-ant-...", text: $apiKey)
+                    .font(.system(size: 13, design: .monospaced))
+                    .padding(.horizontal, 12).padding(.vertical, 10)
+                    .background(Color.white)
+                    .cornerRadius(8)
+                    .overlay(RoundedRectangle(cornerRadius: 8).stroke(
+                        apiKey.isEmpty ? Color(hex: "#DDD6FE") : Color(hex: "#8B5CF6"), lineWidth: 1))
+                    .onChange(of: apiKey) { v in
+                        UserDefaults.standard.set(v, forKey: "anthropic_api_key")
+                    }
+                if apiKey.isEmpty {
+                    Text("Analiz üçün Claude API açarı tələb olunur")
+                        .font(.system(size: 11)).foregroundColor(Color(hex: "#8B5CF6"))
+                }
+            }
+            .padding(.horizontal, 24)
+
             VStack(spacing: 10) {
                 Button { showPicker = true } label: {
                     HStack(spacing: 8) {
@@ -74,18 +98,22 @@ struct QaimeImportView: View {
                     }
                     .font(.system(size: 14, weight: .semibold))
                     .frame(maxWidth: .infinity).frame(height: 48)
-                    .background(Color(hex: "#8B5CF6"))
+                    .background(apiKey.isEmpty ? Color.slate300 : Color(hex: "#8B5CF6"))
                     .foregroundColor(.white).cornerRadius(10)
                 }
                 .padding(.horizontal, 24)
+                .disabled(apiKey.isEmpty)
 
                 Text("PDF · PNG · JPG · TXT dəstəklənir")
                     .font(.system(size: 12)).foregroundColor(.slate400)
             }
 
             if let err = errorMsg {
-                Text(err).font(.system(size: 13)).foregroundColor(.red)
-                    .padding(.horizontal, 24)
+                HStack(spacing: 6) {
+                    Image(systemName: "exclamationmark.circle.fill").foregroundColor(.red)
+                    Text(err).font(.system(size: 13)).foregroundColor(.red)
+                }
+                .padding(.horizontal, 24)
             }
 
             Spacer()
@@ -93,7 +121,7 @@ struct QaimeImportView: View {
         .background(Color.appBg)
         .fileImporter(
             isPresented: $showPicker,
-            allowedContentTypes: [.pdf, .image, .text, .commaSeparatedText]
+            allowedContentTypes: [.data]
         ) { result in
             switch result {
             case .success(let url): analyzeDocument(url: url)
@@ -186,9 +214,8 @@ struct QaimeImportView: View {
     }
 
     private func callClaudeAPI(text: String) async throws -> [ImportRow] {
-        let apiKey = UserDefaults.standard.string(forKey: "anthropic_api_key") ?? ""
         guard !apiKey.isEmpty else {
-            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "Parametrlər > AI Açarı sahəsini doldurun"])
+            throw NSError(domain: "", code: 0, userInfo: [NSLocalizedDescriptionKey: "API açarını yuxarıda daxil edin"])
         }
 
         let prompt = """

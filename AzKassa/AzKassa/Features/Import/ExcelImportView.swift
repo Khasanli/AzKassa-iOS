@@ -108,7 +108,7 @@ struct ExcelImportView: View {
             Spacer()
         }
         .background(Color.appBg)
-        .fileImporter(isPresented: $showPicker, allowedContentTypes: [.commaSeparatedText, .text, UTType("public.plain-text")!]) { result in
+        .fileImporter(isPresented: $showPicker, allowedContentTypes: [.data]) { result in
             switch result {
             case .success(let url):
                 fileName = url.lastPathComponent
