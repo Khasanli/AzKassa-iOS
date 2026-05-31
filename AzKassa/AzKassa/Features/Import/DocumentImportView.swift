@@ -168,18 +168,30 @@ struct QaimeImportView: View {
         stage = .analyzing
         errorMsg = nil
 
-        // Copy to temp location so we can read it
+        // Copy to temp location
         let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
         try? FileManager.default.removeItem(at: tmp)
         try? FileManager.default.copyItem(at: url, to: tmp)
 
+        let ext = url.pathExtension.lowercased()
+        let isImage = ["png", "jpg", "jpeg", "heic", "webp"].contains(ext)
+        let isPDF   = ext == "pdf"
+
         let text: String
-        if let content = try? String(contentsOf: tmp, encoding: .utf8) {
+        if isImage || isPDF {
+            // For binary files, send filename + base64 hint to AI
+            if let data = try? Data(contentsOf: tmp) {
+                let b64 = data.base64EncodedString().prefix(8000)
+                text = "[\(url.lastPathComponent) — base64 məzmun]\n\(b64)"
+            } else {
+                text = "[\(url.lastPathComponent)]"
+            }
+        } else if let content = try? String(contentsOf: tmp, encoding: .utf8) {
             text = content
         } else if let content = try? String(contentsOf: tmp, encoding: .isoLatin1) {
             text = content
         } else {
-            text = "[\(url.lastPathComponent) - məzmun oxunmadı, fayl adı analiz edilir]"
+            text = "[\(url.lastPathComponent)]"
         }
 
         Task {

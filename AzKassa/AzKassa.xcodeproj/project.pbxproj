@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		0D04F3575D643D9B81C6771B /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1B765329CB004C49228F987 /* DashboardView.swift */; };
 		13EB0DE5747C0DFFDDB641EF /* scanner-beep.mp3 in Resources */ = {isa = PBXBuildFile; fileRef = 31C43284A1D1D3C8E7A3E1D9 /* scanner-beep.mp3 */; };
+		21500619D0A7A951201789E7 /* CoreXLSX in Frameworks */ = {isa = PBXBuildFile; productRef = 5CB2959BC6B7ABF5F62C2681 /* CoreXLSX */; };
 		268894C902D32617C74ED451 /* ProductsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 08B7399B438B91A11F4A7EEA /* ProductsView.swift */; };
 		320843B33CC55E3C66D642F4 /* DesignSystem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2F66386612D39C36FCB99522 /* DesignSystem.swift */; };
 		36CC9D1B94921658EA86B75C /* BarcodeScannerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6F0456C88A478359F46C4DEF /* BarcodeScannerView.swift */; };
@@ -69,6 +70,17 @@
 		EB81B167AC5B8ECC2E29FFE7 /* ProductsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProductsViewModel.swift; sourceTree = "<group>"; };
 		F059C530125BB47807BB1EAC /* OrdersView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OrdersView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		400838BE341936B87C16E328 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				21500619D0A7A951201789E7 /* CoreXLSX in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
 		08B6A55BB55C3E27B4FE5110 /* Auth */ = {
@@ -244,6 +256,7 @@
 			buildPhases = (
 				25B15F9E444396FF9B37F2F5 /* Sources */,
 				636D018C688B92891E0A16FD /* Resources */,
+				400838BE341936B87C16E328 /* Frameworks */,
 			);
 			buildRules = (
 			);
@@ -251,6 +264,7 @@
 			);
 			name = AzKassa;
 			packageProductDependencies = (
+				5CB2959BC6B7ABF5F62C2681 /* CoreXLSX */,
 			);
 			productName = AzKassa;
 			productReference = 83BEB00C2F3834AB3EB770CE /* AzKassa.app */;
@@ -276,6 +290,9 @@
 			);
 			mainGroup = D246EC639EE45AB8893E325E;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				986B2796CE2A771B38D9024F /* XCRemoteSwiftPackageReference "CoreXLSX" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C9EB4ADC5CAA8D704A33BBAB /* Products */;
 			projectDirPath = "";
@@ -520,6 +537,25 @@
 			defaultConfigurationName = Debug;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		986B2796CE2A771B38D9024F /* XCRemoteSwiftPackageReference "CoreXLSX" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/CoreOffice/CoreXLSX";
+			requirement = {
+				kind = exactVersion;
+				version = 0.14.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		5CB2959BC6B7ABF5F62C2681 /* CoreXLSX */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 986B2796CE2A771B38D9024F /* XCRemoteSwiftPackageReference "CoreXLSX" */;
+			productName = CoreXLSX;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 43C92974EAF99772D38799DC /* Project object */;
 }

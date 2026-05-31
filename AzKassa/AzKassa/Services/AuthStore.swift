@@ -11,11 +11,16 @@ final class AuthStore: ObservableObject {
     private let userKey  = "mkassa_auth_user"
 
     init() {
-        if let token = UserDefaults.standard.string(forKey: tokenKey), !token.isEmpty {
-            isLoggedIn = true
-            if let data = UserDefaults.standard.data(forKey: userKey) {
-                currentUser = try? JSONDecoder().decode(AuthUser.self, from: data)
-            }
+        let token = UserDefaults.standard.string(forKey: tokenKey) ?? ""
+        // Real JWTs always start with "ey" — reject any old fake/demo tokens
+        guard token.hasPrefix("ey") else {
+            UserDefaults.standard.removeObject(forKey: tokenKey)
+            UserDefaults.standard.removeObject(forKey: userKey)
+            return
+        }
+        isLoggedIn = true
+        if let data = UserDefaults.standard.data(forKey: userKey) {
+            currentUser = try? JSONDecoder().decode(AuthUser.self, from: data)
         }
     }
 

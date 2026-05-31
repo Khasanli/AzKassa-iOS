@@ -1,5 +1,6 @@
 import SwiftUI
 import UniformTypeIdentifiers
+import CoreXLSX
 
 // MARK: - CSV Import — matches web ExcelImportModal with column mapping stage
 
@@ -269,13 +270,72 @@ struct ExcelImportView: View {
             parseError = "Fayl kopyalana bilmədi"; return
         }
 
+        fileName = url.lastPathComponent
+        let ext = url.pathExtension.lowercased()
+
+        if ext == "xlsx" || ext == "xls" {
+            loadXLSX(from: tmp)
+        } else {
+            loadCSV(from: tmp)
+        }
+    }
+
+    // MARK: - XLSX parser (CoreXLSX)
+
+    private func loadXLSX(from url: URL) {
+        do {
+            guard let file = XLSXFile(filepath: url.path) else {
+                parseError = "XLSX faylı açılmadı"; return
+            }
+            let workbooks = try file.parseWorkbooks()
+            guard let workbook = workbooks.first else {
+                parseError = "Workbook tapılmadı"; return
+            }
+            let paths = try file.parseWorksheetPathsAndNames(workbook: workbook)
+            guard let sheetPath = paths.first?.path else {
+                parseError = "Vərəq tapılmadı"; return
+            }
+            let worksheet = try file.parseWorksheet(at: sheetPath)
+            let sharedStrings = try file.parseSharedStrings()
+
+            guard let rows = worksheet.data?.rows, !rows.isEmpty else {
+                parseError = "Vərəq boşdur"; return
+            }
+
+            // First row = headers
+            let headerRow = rows[0]
+            headers = headerRow.cells.map { cell in
+                cell.stringValue(sharedStrings) ?? cell.value ?? ""
+            }.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
+
+            rawData = rows.dropFirst().compactMap { row in
+                var dict: [String: String] = [:]
+                for cell in row.cells {
+                    guard let col = cell.reference.column.value.toColumnIndex(),
+                          col < headers.count else { continue }
+                    dict[headers[col]] = (cell.stringValue(sharedStrings) ?? cell.value ?? "")
+                        .trimmingCharacters(in: .whitespaces)
+                }
+                return dict.isEmpty ? nil : dict
+            }
+
+            mapping = suggestMapping(headers: headers)
+            parseError = nil
+            stage = .map
+        } catch {
+            parseError = "XLSX oxunmadı: \(error.localizedDescription)"
+        }
+    }
+
+    // MARK: - CSV parser
+
+    private func loadCSV(from url: URL) {
         let text: String
-        if let t = try? String(contentsOf: tmp, encoding: .utf8) { text = t }
-        else if let t = try? String(contentsOf: tmp, encoding: .windowsCP1251) { text = t }
-        else if let t = try? String(contentsOf: tmp, encoding: .isoLatin1) { text = t }
+        if let t = try? String(contentsOf: url, encoding: .utf8) { text = t }
+        else if let t = try? String(contentsOf: url, encoding: .windowsCP1251) { text = t }
+        else if let t = try? String(contentsOf: url, encoding: .isoLatin1) { text = t }
         else { parseError = "Fayl oxunmadı — UTF-8 formatını yoxlayın"; return }
 
-        // Detect delimiter: comma or semicolon
         let firstLine = text.components(separatedBy: .newlines).first { !$0.trimmingCharacters(in: .whitespaces).isEmpty } ?? ""
         let delimiter: Character = firstLine.filter { $0 == ";" }.count > firstLine.filter { $0 == "," }.count ? ";" : ","
 
@@ -283,12 +343,11 @@ struct ExcelImportView: View {
         guard lines.count > 1 else { parseError = "Fayl boşdur"; return }
 
         headers = parseCSVLine(lines[0], delimiter: delimiter)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
+            .map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
 
         rawData = lines.dropFirst().compactMap { line in
             let cols = parseCSVLine(line, delimiter: delimiter)
-            guard cols.count >= headers.count / 2 else { return nil }
+            guard cols.count >= max(1, headers.count / 2) else { return nil }
             var dict: [String: String] = [:]
             for (i, h) in headers.enumerated() {
                 dict[h] = i < cols.count ? cols[i].trimmingCharacters(in: .whitespaces) : ""
@@ -296,7 +355,6 @@ struct ExcelImportView: View {
             return dict
         }
 
-        fileName = url.lastPathComponent
         mapping = suggestMapping(headers: headers)
         parseError = nil
         stage = .map
@@ -383,6 +441,17 @@ struct ExcelImportView: View {
 
     private func currentValue(_ kp: WritableKeyPath<FieldMapping, String?>) -> String? {
         mapping[keyPath: kp]
+    }
+}
+
+// MARK: - Column letter to index
+
+private extension String {
+    func toColumnIndex() -> Int? {
+        // "A"->0, "B"->1, "Z"->25, "AA"->26 ...
+        let upper = uppercased()
+        guard upper.allSatisfy({ $0.isLetter }) else { return nil }
+        return upper.unicodeScalars.reduce(0) { $0 * 26 + Int($1.value - 64) } - 1
     }
 }
 
