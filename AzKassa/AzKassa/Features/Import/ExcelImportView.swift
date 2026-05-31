@@ -1,6 +1,5 @@
 import SwiftUI
 import UniformTypeIdentifiers
-import CoreXLSX
 
 // MARK: - CSV Import — matches web ExcelImportModal with column mapping stage
 
@@ -280,50 +279,26 @@ struct ExcelImportView: View {
         }
     }
 
-    // MARK: - XLSX parser (CoreXLSX)
+    // MARK: - XLSX parser (server-side via /api/convert/xlsx)
 
     private func loadXLSX(from url: URL) {
-        do {
-            guard let file = XLSXFile(filepath: url.path) else {
-                parseError = "XLSX faylı açılmadı"; return
-            }
-            let workbooks = try file.parseWorkbooks()
-            guard let workbook = workbooks.first else {
-                parseError = "Workbook tapılmadı"; return
-            }
-            let paths = try file.parseWorksheetPathsAndNames(workbook: workbook)
-            guard let sheetPath = paths.first?.path else {
-                parseError = "Vərəq tapılmadı"; return
-            }
-            let worksheet = try file.parseWorksheet(at: sheetPath)
-            let sharedStrings = try file.parseSharedStrings()
-
-            guard let rows = worksheet.data?.rows, !rows.isEmpty else {
-                parseError = "Vərəq boşdur"; return
-            }
-
-            // First row = headers
-            let headerRow = rows[0]
-            headers = headerRow.cells.map { cell in
-                cell.stringValue(sharedStrings) ?? cell.value ?? ""
-            }.map { $0.trimmingCharacters(in: .whitespaces) }.filter { !$0.isEmpty }
-
-            rawData = rows.dropFirst().compactMap { row in
-                var dict: [String: String] = [:]
-                for cell in row.cells {
-                    guard let col = cell.reference.column.value.toColumnIndex(),
-                          col < headers.count else { continue }
-                    dict[headers[col]] = (cell.stringValue(sharedStrings) ?? cell.value ?? "")
-                        .trimmingCharacters(in: .whitespaces)
+        guard let fileData = try? Data(contentsOf: url) else {
+            parseError = "XLSX faylı oxunmadı"; return
+        }
+        stage = .map  // show loading state via mapView spinner
+        Task {
+            do {
+                let result = try await APIService.shared.convertXLSX(data: fileData, filename: url.lastPathComponent)
+                headers = result.headers
+                rawData = result.rows.map { row in
+                    row.mapValues { "\($0)" }
                 }
-                return dict.isEmpty ? nil : dict
+                mapping = suggestMapping(headers: headers)
+                parseError = nil
+            } catch {
+                parseError = "XLSX emal edilmədi: \(error.localizedDescription)"
+                stage = .pick
             }
-
-            mapping = suggestMapping(headers: headers)
-            parseError = nil
-            stage = .map
-        } catch {
-            parseError = "XLSX oxunmadı: \(error.localizedDescription)"
         }
     }
 
@@ -441,17 +416,6 @@ struct ExcelImportView: View {
 
     private func currentValue(_ kp: WritableKeyPath<FieldMapping, String?>) -> String? {
         mapping[keyPath: kp]
-    }
-}
-
-// MARK: - Column letter to index
-
-private extension String {
-    func toColumnIndex() -> Int? {
-        // "A"->0, "B"->1, "Z"->25, "AA"->26 ...
-        let upper = uppercased()
-        guard upper.allSatisfy({ $0.isLetter }) else { return nil }
-        return upper.unicodeScalars.reduce(0) { $0 * 26 + Int($1.value - 64) } - 1
     }
 }
 

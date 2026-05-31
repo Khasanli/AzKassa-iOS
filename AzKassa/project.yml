@@ -6,11 +6,6 @@ options:
     iOS: "16.0"
   defaultConfig: Debug
 
-packages:
-  CoreXLSX:
-    url: https://github.com/CoreOffice/CoreXLSX
-    exactVersion: "0.14.2"
-
 settings:
   base:
     SWIFT_VERSION: "5.0"
@@ -29,8 +24,6 @@ targets:
     resources:
       - AzKassa/Assets.xcassets
       - AzKassa/scanner-beep.mp3
-    dependencies:
-      - package: CoreXLSX
     info:
       path: AzKassa/Info.plist
       properties:

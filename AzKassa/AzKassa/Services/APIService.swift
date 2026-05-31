@@ -128,6 +128,44 @@ final class APIService {
         _ = try await URLSession.shared.data(for: req)
     }
 
+    // MARK: - XLSX conversion
+
+    struct XLSXResult {
+        let headers: [String]
+        let rows: [[String: Any]]
+    }
+
+    func convertXLSX(data: Data, filename: String) async throws -> XLSXResult {
+        guard let url = URL(string: baseURL + "/convert/xlsx") else { throw APIError.serverError("Invalid URL") }
+        var req = URLRequest(url: url)
+        req.httpMethod = "POST"
+        req.timeoutInterval = 30
+        if let token { req.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization") }
+
+        let boundary = UUID().uuidString
+        req.setValue("multipart/form-data; boundary=\(boundary)", forHTTPHeaderField: "Content-Type")
+
+        var body = Data()
+        body.append("--\(boundary)\r\n".data(using: .utf8)!)
+        body.append("Content-Disposition: form-data; name=\"file\"; filename=\"\(filename)\"\r\n".data(using: .utf8)!)
+        body.append("Content-Type: application/octet-stream\r\n\r\n".data(using: .utf8)!)
+        body.append(data)
+        body.append("\r\n--\(boundary)--\r\n".data(using: .utf8)!)
+        req.httpBody = body
+
+        let (respData, response) = try await URLSession.shared.data(for: req)
+        guard let http = response as? HTTPURLResponse, (200...299).contains(http.statusCode) else {
+            let msg = (try? JSONDecoder().decode([String: String].self, from: respData))?["error"] ?? "Çevrilmə xətası"
+            throw APIError.serverError(msg)
+        }
+        guard let json = try? JSONSerialization.jsonObject(with: respData) as? [String: Any],
+              let headers = json["headers"] as? [String],
+              let rows = json["rows"] as? [[String: Any]]
+        else { throw APIError.serverError("Cavab emal edilmədi") }
+
+        return XLSXResult(headers: headers, rows: rows)
+    }
+
     // MARK: - AI
 
     func analyzeDocument(text: String) async throws -> [[String: Any]] {
