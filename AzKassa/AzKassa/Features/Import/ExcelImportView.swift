@@ -183,10 +183,26 @@ struct ExcelImportView: View {
     // MARK: - CSV Parser
 
     private func parseCSV(url: URL) {
-        guard url.startAccessingSecurityScopedResource() else { return }
+        _ = url.startAccessingSecurityScopedResource()
         defer { url.stopAccessingSecurityScopedResource() }
-        guard let text = try? String(contentsOf: url, encoding: .utf8) else {
-            parseError = "Fayl oxunmadı"
+
+        // Copy to temp so we can read after security scope ends
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
+        try? FileManager.default.removeItem(at: tmp)
+        guard (try? FileManager.default.copyItem(at: url, to: tmp)) != nil else {
+            parseError = "Fayl kopyalana bilmədi"
+            return
+        }
+
+        let text: String
+        if let t = try? String(contentsOf: tmp, encoding: .utf8) {
+            text = t
+        } else if let t = try? String(contentsOf: tmp, encoding: .windowsCP1251) {
+            text = t
+        } else if let t = try? String(contentsOf: tmp, encoding: .isoLatin1) {
+            text = t
+        } else {
+            parseError = "Fayl oxunmadı — UTF-8 və ya CSV formatını yoxlayın"
             return
         }
         let lines = text.components(separatedBy: .newlines).filter { !$0.isEmpty }

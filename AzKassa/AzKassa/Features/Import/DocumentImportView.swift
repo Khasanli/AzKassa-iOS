@@ -162,19 +162,24 @@ struct QaimeImportView: View {
     // MARK: - Backend AI call
 
     private func analyzeDocument(url: URL) {
-        guard url.startAccessingSecurityScopedResource() else { return }
+        _ = url.startAccessingSecurityScopedResource()
         defer { url.stopAccessingSecurityScopedResource() }
         fileName = url.lastPathComponent
         stage = .analyzing
         errorMsg = nil
 
+        // Copy to temp location so we can read it
+        let tmp = FileManager.default.temporaryDirectory.appendingPathComponent(url.lastPathComponent)
+        try? FileManager.default.removeItem(at: tmp)
+        try? FileManager.default.copyItem(at: url, to: tmp)
+
         let text: String
-        if let content = try? String(contentsOf: url, encoding: .utf8) {
+        if let content = try? String(contentsOf: tmp, encoding: .utf8) {
             text = content
-        } else if let content = try? String(contentsOf: url, encoding: .isoLatin1) {
+        } else if let content = try? String(contentsOf: tmp, encoding: .isoLatin1) {
             text = content
         } else {
-            text = "[\(url.lastPathComponent) - ikili fayl]"
+            text = "[\(url.lastPathComponent) - məzmun oxunmadı, fayl adı analiz edilir]"
         }
 
         Task {

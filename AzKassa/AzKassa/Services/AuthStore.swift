@@ -23,21 +23,6 @@ final class AuthStore: ObservableObject {
         isLoading = true
         errorMessage = nil
 
-        // Offline demo mode: allow login without a server
-        if email == "demo@azkassa.az" && password == "demo1234" {
-            let demoUser = AuthUser(
-                id: "demo-local",
-                email: email,
-                fullName: "Demo İstifadəçi",
-                companyName: "Demo Mağaza",
-                profile: "retail",
-                currency: "AZN"
-            )
-            save(token: "demo-offline-token", user: demoUser)
-            isLoading = false
-            return
-        }
-
         do {
             let response = try await APIService.shared.login(email: email, password: password)
             save(token: response.token, user: response.user)
