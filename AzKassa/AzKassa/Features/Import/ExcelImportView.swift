@@ -252,58 +252,51 @@ struct ExcelImportView: View {
 
             List(rows) { row in
                 HStack(spacing: 8) {
-                    // Checkbox
+                    // Checkbox — only this toggles selection
                     Button {
-                        if row.isValid {
-                            if selected.contains(row.id) { selected.remove(row.id) }
-                            else { selected.insert(row.id) }
-                        }
+                        guard row.isValid else { return }
+                        if selected.contains(row.id) { selected.remove(row.id) }
+                        else { selected.insert(row.id) }
                     } label: {
                         Image(systemName: selected.contains(row.id) ? "checkmark.square.fill" : (row.isValid ? "square" : "xmark.circle.fill"))
                             .foregroundColor(selected.contains(row.id) ? Color(hex: "#10B981") : (row.isValid ? .slate300 : .red))
                             .font(.system(size: 18))
                     }
+                    .buttonStyle(.plain)
                     .disabled(!row.isValid)
 
-                    // Row info
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(row.name.isEmpty ? "(adsız)" : row.name)
-                            .font(.system(size: 13, weight: .semibold))
-                            .foregroundColor(row.isValid ? .slate900 : .red)
-                            .lineLimit(1)
-                        HStack(spacing: 4) {
-                            Text(row.category).font(.system(size: 11)).foregroundColor(.slate400)
-                            Text("·").foregroundColor(.slate300)
-                            Text(row.unit).font(.system(size: 11)).foregroundColor(.slate400)
-                            if let err = row.error {
-                                Text("· \(err)").font(.system(size: 11)).foregroundColor(.red)
+                    // Row body — tap anywhere here opens edit sheet
+                    HStack(spacing: 0) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(row.name.isEmpty ? "(adsız)" : row.name)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(row.isValid ? .slate900 : .red)
+                                .lineLimit(1)
+                            HStack(spacing: 4) {
+                                Text(row.category).font(.system(size: 11)).foregroundColor(.slate400)
+                                Text("·").foregroundColor(.slate300)
+                                Text(row.unit).font(.system(size: 11)).foregroundColor(.slate400)
+                                if let err = row.error {
+                                    Text("· \(err)").font(.system(size: 11)).foregroundColor(.red)
+                                }
                             }
                         }
-                    }
-
-                    Spacer()
-
-                    // Price
-                    VStack(alignment: .trailing, spacing: 1) {
-                        Text(String(format: "%.2f ₼", row.price))
-                            .font(.system(size: 13, weight: .bold)).foregroundColor(.slate900)
-                        if row.costPrice > 0 {
-                            Text(String(format: "%.2f ₼", row.costPrice))
-                                .font(.system(size: 11)).foregroundColor(.slate400)
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 1) {
+                            Text(String(format: "%.2f ₼", row.price))
+                                .font(.system(size: 13, weight: .bold)).foregroundColor(.slate900)
+                            if row.costPrice > 0 {
+                                Text(String(format: "%.2f ₼", row.costPrice))
+                                    .font(.system(size: 11)).foregroundColor(.slate400)
+                            }
                         }
-                    }
-
-                    // Edit button
-                    Button {
-                        editingRow = row
-                    } label: {
                         Image(systemName: "pencil")
-                            .font(.system(size: 13))
+                            .font(.system(size: 12))
                             .foregroundColor(.brand)
-                            .padding(6)
-                            .background(Color.brandLight)
-                            .cornerRadius(6)
+                            .padding(.leading, 10)
                     }
+                    .contentShape(Rectangle())
+                    .onTapGesture { editingRow = row }
                 }
                 .padding(.vertical, 4)
                 .listRowBackground(selected.contains(row.id) ? Color(hex: "#ECFDF5") : (row.isValid ? Color.white : Color(hex: "#FEF2F2")))

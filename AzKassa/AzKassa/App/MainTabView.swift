@@ -1,68 +1,53 @@
 import SwiftUI
 
-struct MainTabView: View {
-    @State private var selected = 0
+// UITabBarController directly — guaranteed native glass effect + exact icon size control
 
-    // Icon names matching tab order
-    private let iconNames = [
-        "chart.bar.fill",
-        "cart.fill",
-        "shippingbox.fill",
-        "doc.text.fill",
-        "chart.line.uptrend.xyaxis",
-        "gearshape.fill",
-    ]
+struct MainTabView: UIViewControllerRepresentable {
+    @EnvironmentObject var authStore: AuthStore
 
-    var body: some View {
-        TabView(selection: $selected) {
-            DashboardView()
-                .tabItem { Label("Dashboard", systemImage: "chart.bar.fill") }
-                .tag(0)
+    func makeUIViewController(context: Context) -> UITabBarController {
+        let tabVC = UITabBarController()
 
-            POSView()
-                .tabItem { Label("Satış", systemImage: "cart.fill") }
-                .tag(1)
+        let iconSize: CGFloat = 16
+        let cfg = UIImage.SymbolConfiguration(pointSize: iconSize, weight: .medium)
 
-            ProductsView()
-                .tabItem { Label("Məhsullar", systemImage: "shippingbox.fill") }
-                .tag(2)
-
-            InvoicesView()
-                .tabItem { Label("Qəbzlər", systemImage: "doc.text.fill") }
-                .tag(3)
-
-            ReportsView()
-                .tabItem { Label("Hesabat", systemImage: "chart.line.uptrend.xyaxis") }
-                .tag(4)
-
-            SettingsView()
-                .tabItem { Label("Parametr", systemImage: "gearshape.fill") }
-                .tag(5)
+        func tab<V: View>(_ view: V, icon: String, title: String) -> UIViewController {
+            let vc = UIHostingController(rootView: view.environmentObject(authStore))
+            vc.tabBarItem = UITabBarItem(
+                title: title,
+                image: UIImage(systemName: icon, withConfiguration: cfg),
+                selectedImage: UIImage(systemName: icon, withConfiguration: cfg)
+            )
+            return vc
         }
-        .tint(Color.brand)
-        .onAppear { resizeTabBarIcons() }
+
+        tabVC.viewControllers = [
+            tab(DashboardView(),  icon: "chart.bar.fill",           title: "Dashboard"),
+            tab(POSView(),        icon: "cart.fill",                 title: "Satış"),
+            tab(ProductsView(),   icon: "shippingbox.fill",          title: "Məhsullar"),
+            tab(InvoicesView(),   icon: "doc.text.fill",             title: "Qəbzlər"),
+            tab(ReportsView(),    icon: "chart.line.uptrend.xyaxis", title: "Hesabat"),
+            tab(SettingsView(),   icon: "gearshape.fill",            title: "Parametr"),
+        ]
+
+        // Native glass appearance + small label font
+        let appearance = UITabBarAppearance()
+        appearance.configureWithDefaultBackground()
+
+        let item = UITabBarItemAppearance()
+        let font = UIFont.systemFont(ofSize: 9, weight: .medium)
+        item.normal.titleTextAttributes   = [.font: font, .foregroundColor: UIColor.systemGray]
+        item.selected.titleTextAttributes = [.font: font]
+        appearance.stackedLayoutAppearance      = item
+        appearance.inlineLayoutAppearance       = item
+        appearance.compactInlineLayoutAppearance = item
+
+        tabVC.tabBar.standardAppearance   = appearance
+        tabVC.tabBar.scrollEdgeAppearance = appearance
+        tabVC.tabBar.tintColor            = UIColor(Color.brand)
+
+        return tabVC
     }
 
-    // Replace system tab bar images with smaller 18pt versions
-    private func resizeTabBarIcons() {
-        guard let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let root = scene.windows.first?.rootViewController else { return }
-
-        func findTabBar(_ vc: UIViewController) -> UITabBar? {
-            if let tb = (vc as? UITabBarController)?.tabBar { return tb }
-            for child in vc.children { if let found = findTabBar(child) { return found } }
-            return nil
-        }
-
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-            guard let tabBar = findTabBar(root) else { return }
-            let config = UIImage.SymbolConfiguration(pointSize: 17, weight: .medium)
-            for (index, item) in (tabBar.items ?? []).enumerated() {
-                guard index < iconNames.count else { break }
-                let img = UIImage(systemName: iconNames[index], withConfiguration: config)
-                item.image         = img
-                item.selectedImage = img
-            }
-        }
-    }
+    func updateUIViewController(_ uiViewController: UITabBarController, context: Context) {}
 }
