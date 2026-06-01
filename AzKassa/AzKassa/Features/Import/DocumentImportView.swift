@@ -13,6 +13,7 @@ struct QaimeImportView: View {
     @State private var errorMsg: String?
     @State private var showPicker = false
     @State private var fileName = ""
+    @State private var editingRow: ImportRow? = nil
 
     enum Stage { case pick, analyzing, preview, done }
 
@@ -114,7 +115,7 @@ struct QaimeImportView: View {
         .background(Color.appBg)
     }
 
-    // MARK: - Preview
+    // MARK: - Preview (same row structure as Excel import)
 
     private var previewView: some View {
         VStack(spacing: 0) {
@@ -122,7 +123,8 @@ struct QaimeImportView: View {
                 Image(systemName: "checkmark.seal.fill")
                     .foregroundColor(Color(hex: "#8B5CF6")).font(.system(size: 13))
                 Text(fileName).font(.system(size: 13, weight: .medium)).lineLimit(1)
-                Text("· \(rows.count) məhsul tapıldı").font(.system(size: 12)).foregroundColor(.slate400)
+                Text("· \(rows.count) tapıldı (\(rows.filter(\.isValid).count) etibarlı)")
+                    .font(.system(size: 12)).foregroundColor(.slate400)
                 Spacer()
                 Button(selected.count == rows.filter(\.isValid).count ? "Seçimi sil" : "Hamısını seç") {
                     let valid = rows.filter(\.isValid).map(\.id)
@@ -134,16 +136,62 @@ struct QaimeImportView: View {
             Divider()
 
             List(rows) { row in
-                ImportRowCell(row: row, isSelected: selected.contains(row.id)) {
-                    if row.isValid {
+                HStack(spacing: 8) {
+                    // Checkbox — only toggles selection
+                    Button {
+                        guard row.isValid else { return }
                         if selected.contains(row.id) { selected.remove(row.id) }
                         else { selected.insert(row.id) }
+                    } label: {
+                        Image(systemName: selected.contains(row.id) ? "checkmark.square.fill" : (row.isValid ? "square" : "xmark.circle.fill"))
+                            .foregroundColor(selected.contains(row.id) ? Color(hex: "#10B981") : (row.isValid ? .slate300 : .red))
+                            .font(.system(size: 18))
                     }
+                    .buttonStyle(.plain)
+                    .disabled(!row.isValid)
+
+                    // Row body — tap to edit
+                    HStack(spacing: 0) {
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(row.name.isEmpty ? "(adsız)" : row.name)
+                                .font(.system(size: 13, weight: .semibold))
+                                .foregroundColor(row.isValid ? .slate900 : .red)
+                                .lineLimit(1)
+                            HStack(spacing: 4) {
+                                Text(row.category).font(.system(size: 11)).foregroundColor(.slate400)
+                                Text("·").foregroundColor(.slate300)
+                                Text(row.unit).font(.system(size: 11)).foregroundColor(.slate400)
+                            }
+                        }
+                        Spacer()
+                        VStack(alignment: .trailing, spacing: 1) {
+                            Text(String(format: "%.2f ₼", row.price))
+                                .font(.system(size: 13, weight: .bold)).foregroundColor(.slate900)
+                            if row.costPrice > 0 {
+                                Text(String(format: "%.2f ₼", row.costPrice))
+                                    .font(.system(size: 11)).foregroundColor(.slate400)
+                            }
+                        }
+                        Image(systemName: "pencil")
+                            .font(.system(size: 12)).foregroundColor(.brand)
+                            .padding(.leading, 10)
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture { editingRow = row }
                 }
-                .listRowBackground(selected.contains(row.id) ? Color(hex: "#ECFDF5") : Color.white)
+                .padding(.vertical, 4)
+                .listRowBackground(selected.contains(row.id) ? Color(hex: "#ECFDF5") : (row.isValid ? Color.white : Color(hex: "#FEF2F2")))
                 .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
             }
             .listStyle(.plain)
+        }
+        .sheet(item: $editingRow) { row in
+            EditImportRowSheet(row: row) { updated in
+                if let idx = rows.firstIndex(where: { $0.id == row.id }) {
+                    rows[idx] = updated
+                    if updated.isValid { selected.insert(updated.id) }
+                }
+            }
         }
     }
 

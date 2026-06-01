@@ -241,7 +241,6 @@ struct POSProductCard: View {
                     .overlay(RoundedRectangle(cornerRadius: 12).stroke(inCart ? Color.brand : Color.slate200, lineWidth: inCart ? 1.5 : 1))
             )
         }
-        .disabled(product.stock <= 0)
-        .opacity(product.stock <= 0 ? 0.5 : 1)
+        .opacity(product.stock <= 0 ? 0.6 : 1)
     }
 }

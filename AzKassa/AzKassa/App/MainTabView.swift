@@ -8,7 +8,7 @@ struct MainTabView: UIViewControllerRepresentable {
     func makeUIViewController(context: Context) -> UITabBarController {
         let tabVC = UITabBarController()
 
-        let iconSize: CGFloat = 16
+        let iconSize: CGFloat = 14
         let cfg = UIImage.SymbolConfiguration(pointSize: iconSize, weight: .medium)
 
         func tab<V: View>(_ view: V, icon: String, title: String) -> UIViewController {
