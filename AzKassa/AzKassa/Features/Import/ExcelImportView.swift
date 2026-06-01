@@ -49,6 +49,7 @@ struct ExcelImportView: View {
     @State private var headers: [String] = []
     @State private var mapping = FieldMapping()
     @State private var isConverting = false
+    @State private var editingRow: ImportRow? = nil
 
     enum Stage { case pick, map, preview, done }
 
@@ -250,16 +251,74 @@ struct ExcelImportView: View {
             Divider()
 
             List(rows) { row in
-                ImportRowCell(row: row, isSelected: selected.contains(row.id)) {
-                    if row.isValid {
-                        if selected.contains(row.id) { selected.remove(row.id) }
-                        else { selected.insert(row.id) }
+                HStack(spacing: 8) {
+                    // Checkbox
+                    Button {
+                        if row.isValid {
+                            if selected.contains(row.id) { selected.remove(row.id) }
+                            else { selected.insert(row.id) }
+                        }
+                    } label: {
+                        Image(systemName: selected.contains(row.id) ? "checkmark.square.fill" : (row.isValid ? "square" : "xmark.circle.fill"))
+                            .foregroundColor(selected.contains(row.id) ? Color(hex: "#10B981") : (row.isValid ? .slate300 : .red))
+                            .font(.system(size: 18))
+                    }
+                    .disabled(!row.isValid)
+
+                    // Row info
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(row.name.isEmpty ? "(adsız)" : row.name)
+                            .font(.system(size: 13, weight: .semibold))
+                            .foregroundColor(row.isValid ? .slate900 : .red)
+                            .lineLimit(1)
+                        HStack(spacing: 4) {
+                            Text(row.category).font(.system(size: 11)).foregroundColor(.slate400)
+                            Text("·").foregroundColor(.slate300)
+                            Text(row.unit).font(.system(size: 11)).foregroundColor(.slate400)
+                            if let err = row.error {
+                                Text("· \(err)").font(.system(size: 11)).foregroundColor(.red)
+                            }
+                        }
+                    }
+
+                    Spacer()
+
+                    // Price
+                    VStack(alignment: .trailing, spacing: 1) {
+                        Text(String(format: "%.2f ₼", row.price))
+                            .font(.system(size: 13, weight: .bold)).foregroundColor(.slate900)
+                        if row.costPrice > 0 {
+                            Text(String(format: "%.2f ₼", row.costPrice))
+                                .font(.system(size: 11)).foregroundColor(.slate400)
+                        }
+                    }
+
+                    // Edit button
+                    Button {
+                        editingRow = row
+                    } label: {
+                        Image(systemName: "pencil")
+                            .font(.system(size: 13))
+                            .foregroundColor(.brand)
+                            .padding(6)
+                            .background(Color.brandLight)
+                            .cornerRadius(6)
                     }
                 }
+                .padding(.vertical, 4)
                 .listRowBackground(selected.contains(row.id) ? Color(hex: "#ECFDF5") : (row.isValid ? Color.white : Color(hex: "#FEF2F2")))
                 .listRowInsets(EdgeInsets(top: 4, leading: 8, bottom: 4, trailing: 8))
             }
             .listStyle(.plain)
+        }
+        .sheet(item: $editingRow) { row in
+            EditImportRowSheet(row: row) { updated in
+                if let idx = rows.firstIndex(where: { $0.id == row.id }) {
+                    rows[idx] = updated
+                    // Auto-select if now valid
+                    if updated.isValid { selected.insert(updated.id) }
+                }
+            }
         }
     }
 
@@ -474,5 +533,108 @@ struct ImportRowCell: View {
             }
         }
         .padding(.vertical, 4)
+    }
+}
+
+// MARK: - Edit Row Sheet
+
+struct EditImportRowSheet: View {
+    let row: ImportRow
+    let onSave: (ImportRow) -> Void
+    @Environment(\.dismiss) var dismiss
+
+    @State private var name: String
+    @State private var price: String
+    @State private var costPrice: String
+    @State private var barcode: String
+    @State private var category: String
+    @State private var unit: String
+
+    private let categories = ["Ərzaq","Kimyəvi","Tekstil","Ev Malları","Tikinti","Digər",
+                              "Süd Məhsulları","Ət Məhsulları","Meyvə-Tərəvəz","Çay","Qəhvə",
+                              "Şirniyyat","Çörək","İçki","Siqaret"]
+    private let units = ["ədəd","kq","q","litr","ml","paket","dəst","m","m²"]
+
+    init(row: ImportRow, onSave: @escaping (ImportRow) -> Void) {
+        self.row = row
+        self.onSave = onSave
+        _name      = State(initialValue: row.name)
+        _price     = State(initialValue: row.price > 0 ? String(format: "%.2f", row.price) : "")
+        _costPrice = State(initialValue: row.costPrice > 0 ? String(format: "%.2f", row.costPrice) : "")
+        _barcode   = State(initialValue: row.barcode)
+        _category  = State(initialValue: row.category.isEmpty ? "Digər" : row.category)
+        _unit      = State(initialValue: row.unit.isEmpty ? "ədəd" : row.unit)
+    }
+
+    private var isValid: Bool { !name.trimmingCharacters(in: .whitespaces).isEmpty && (Double(price.replacingOccurrences(of: ",", with: ".")) ?? 0) > 0 }
+
+    var body: some View {
+        NavigationStack {
+            Form {
+                Section("Məhsul adı") {
+                    TextField("Ad *", text: $name)
+                }
+                .listRowBackground(Color.white)
+
+                Section("Qiymət") {
+                    HStack {
+                        Text("Satış qiyməti (₼) *").foregroundColor(.slate700)
+                        Spacer()
+                        TextField("0.00", text: $price)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 100)
+                    }
+                    HStack {
+                        Text("Alış qiyməti (₼)").foregroundColor(.slate700)
+                        Spacer()
+                        TextField("0.00", text: $costPrice)
+                            .keyboardType(.decimalPad)
+                            .multilineTextAlignment(.trailing)
+                            .frame(width: 100)
+                    }
+                }
+                .listRowBackground(Color.white)
+
+                Section("Əlavə məlumat") {
+                    TextField("Barkod", text: $barcode)
+                        .keyboardType(.numberPad)
+                    Picker("Kateqoriya", selection: $category) {
+                        ForEach(categories, id: \.self) { Text($0) }
+                    }
+                    Picker("Ölçü vahidi", selection: $unit) {
+                        ForEach(units, id: \.self) { Text($0) }
+                    }
+                }
+                .listRowBackground(Color.white)
+            }
+            .listStyle(.insetGrouped)
+            .background(Color.appBg)
+            .navigationTitle("Məhsulu düzəlt")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Ləğv et") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Saxla") {
+                        let p = Double(price.replacingOccurrences(of: ",", with: ".")) ?? 0
+                        let c = Double(costPrice.replacingOccurrences(of: ",", with: ".")) ?? 0
+                        let trimName = name.trimmingCharacters(in: .whitespaces)
+                        let valid = !trimName.isEmpty && p > 0
+                        onSave(ImportRow(
+                            name: trimName, barcode: barcode,
+                            price: p, costPrice: c,
+                            category: category, unit: unit,
+                            isValid: valid,
+                            error: valid ? nil : (trimName.isEmpty ? "Ad yoxdur" : "Qiymət yanlış")
+                        ))
+                        dismiss()
+                    }
+                    .disabled(!isValid)
+                    .foregroundColor(isValid ? .brand : .slate300)
+                }
+            }
+        }
     }
 }
