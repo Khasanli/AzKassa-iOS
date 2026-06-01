@@ -185,41 +185,27 @@ struct POSProductCard: View {
 
     var body: some View {
         Button(action: onAdd) {
-            VStack(alignment: .leading, spacing: 8) {
-                ZStack(alignment: .topTrailing) {
-                    RoundedRectangle(cornerRadius: 8)
-                        .fill(inCart ? Color.brandLight : Color.slate100)
-                        .frame(height: 56)
-                        .overlay(
-                            Image(systemName: "shippingbox")
-                                .font(.system(size: 20))
-                                .foregroundColor(inCart ? Color.brand : .slate300)
-                        )
+            VStack(alignment: .leading, spacing: 6) {
+                HStack(alignment: .top) {
+                    Text(product.name)
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundColor(inCart ? Color.brand : .slate900)
+                        .lineLimit(3)
+                        .multilineTextAlignment(.leading)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                     if inCart {
-                        Circle()
-                            .fill(Color.brand)
-                            .frame(width: 18, height: 18)
-                            .overlay(Image(systemName: "plus").font(.system(size: 9, weight: .bold)).foregroundColor(.white))
-                            .offset(x: 4, y: -4)
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 16))
+                            .foregroundColor(.brand)
                     }
                 }
 
-                Text(product.name)
-                    .font(.system(size: 12, weight: .semibold))
-                    .foregroundColor(.slate900)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-
-                if !product.sku.isEmpty {
-                    Text(product.sku)
-                        .font(.system(size: 10, design: .monospaced))
-                        .foregroundColor(.slate400)
-                }
+                Spacer(minLength: 0)
 
                 HStack(alignment: .bottom) {
                     VStack(alignment: .leading, spacing: 1) {
                         Text(String(format: "%.2f ₼", product.effectivePrice))
-                            .font(.system(size: 13, weight: .bold))
+                            .font(.system(size: 14, weight: .bold))
                             .foregroundColor(.brand)
                         if product.discountPct > 0 {
                             Text(String(format: "%.2f ₼", product.price))
@@ -229,16 +215,20 @@ struct POSProductCard: View {
                         }
                     }
                     Spacer()
-                    Text("\(Int(product.stock))")
+                    Text(product.stock <= 0 ? "Bitib" : "\(Int(product.stock))")
                         .font(.system(size: 10))
                         .foregroundColor(product.stock <= 0 ? Color(hex: "#EF4444") : .slate400)
                 }
             }
             .padding(10)
+            .frame(minHeight: 90)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(Color.white)
-                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(inCart ? Color.brand : Color.slate200, lineWidth: inCart ? 1.5 : 1))
+                    .fill(inCart ? Color(hex: "#EEF2FF") : Color.white)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(inCart ? Color.brand : Color.slate200, lineWidth: inCart ? 2 : 1)
+                    )
             )
         }
         .opacity(product.stock <= 0 ? 0.6 : 1)
