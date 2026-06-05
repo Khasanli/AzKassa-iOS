@@ -1,4 +1,5 @@
 import SwiftUI
+import AVFoundation
 
 struct AddProductView: View {
     @ObservedObject var vm: ProductsViewModel
@@ -16,6 +17,7 @@ struct AddProductView: View {
     @State private var discountPct = ""
     @State private var isCritical = false
     @State private var showScanner = false
+    @FocusState private var barcodeFocused: Bool
 
     let categories = ["Ərzaq", "Kimyəvi", "Tekstil", "Ev Malları", "Tikinti", "Digər",
                       "Süd Məhsulları", "Ət Məhsulları", "Meyvə-Tərəvəz", "Çay", "Qəhvə", "Şirniyyat", "Çörək", "İçki"]
@@ -29,11 +31,25 @@ struct AddProductView: View {
                     TextField("SKU *", text: $sku)
                     HStack {
                         TextField("Barkod", text: $barcode)
-                        Button {
-                            showScanner = true
-                        } label: {
-                            Image(systemName: "barcode.viewfinder")
-                                .foregroundColor(Color("BrandColor"))
+                            .keyboardType(.asciiCapable)
+                            .focused($barcodeFocused)
+                            .onSubmit {
+                                // Scanner sends Enter after barcode — beep and move on
+                                if !barcode.isEmpty {
+                                    scannerBeep(type: "ok")
+                                    barcodeFocused = false
+                                }
+                            }
+                        if barcode.isEmpty {
+                            Button { showScanner = true } label: {
+                                Image(systemName: "barcode.viewfinder")
+                                    .foregroundColor(.brand)
+                            }
+                        } else {
+                            Button { barcode = "" } label: {
+                                Image(systemName: "xmark.circle.fill")
+                                    .foregroundColor(.slate300)
+                            }
                         }
                     }
                     Picker("Kateqoriya", selection: $category) {

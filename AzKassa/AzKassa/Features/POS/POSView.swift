@@ -2,9 +2,12 @@ import SwiftUI
 
 struct POSView: View {
     @StateObject private var vm = POSViewModel()
+    @FocusState private var scannerFocused: Bool
+    @State private var scannerInput = ""
 
     var body: some View {
         NavigationStack {
+            ZStack {
             HStack(spacing: 0) {
                 productBrowser
                     .frame(maxWidth: .infinity)
@@ -33,6 +36,20 @@ struct POSView: View {
                 Text(vm.paidTotal.map { String(format: "Məbləğ: %.2f ₼", $0) } ?? "")
             }
             .task { await vm.loadProducts() }
+            .onAppear { scannerFocused = true }
+            .onTapGesture { scannerFocused = true }
+
+            // Hidden scanner capture TextField — always focused, captures Sunlux HID input
+            TextField("", text: $scannerInput)
+                .frame(width: 1, height: 1)
+                .opacity(0.01)
+                .focused($scannerFocused)
+                .keyboardType(.asciiCapable)
+                .autocapitalization(.none)
+                .autocorrectionDisabled()
+                .onChange(of: scannerInput) { val in vm.onScannerChar(val) }
+                .onSubmit { vm.commitBarcode(); scannerInput = "" }
+            } // ZStack
         }
     }
 
@@ -69,8 +86,30 @@ struct POSView: View {
                 }
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.vertical, 10)
             .background(Color.white)
+
+            // Scanner status bar
+            HStack(spacing: 6) {
+                Circle()
+                    .fill(vm.scannerConnected ? Color(hex: "#10B981") : Color.slate300)
+                    .frame(width: 7, height: 7)
+                    .overlay(
+                        vm.scannerConnected ?
+                        Circle().fill(Color(hex: "#10B981").opacity(0.4)).scaleEffect(1.8).animation(.easeInOut(duration: 0.8).repeatForever(autoreverses: true), value: vm.scannerConnected) : nil
+                    )
+                Text(vm.scannerConnected ? "Sunlux oxuyucu qoşulub" : "Barkod oxuyucu gözlənilir...")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(vm.scannerConnected ? Color(hex: "#065F46") : .slate400)
+                Spacer()
+                if vm.scannerConnected {
+                    Image(systemName: "barcode.viewfinder")
+                        .font(.system(size: 12))
+                        .foregroundColor(Color(hex: "#10B981"))
+                }
+            }
+            .padding(.horizontal, 16).padding(.vertical, 6)
+            .background(vm.scannerConnected ? Color(hex: "#ECFDF5") : Color(hex: "#F8FAFC"))
 
             Divider()
 
